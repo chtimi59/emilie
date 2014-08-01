@@ -27,6 +27,7 @@ public class LedFlash {
 	}
 	
 	public void setLedStatus(Boolean status) {
+		if (mLedStatus == status) return;
 		mLedStatus = status;
 		if (mLedStatus) {
     		mCameraSetting.setFlashMode(Parameters.FLASH_MODE_TORCH);

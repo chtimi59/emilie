@@ -2,7 +2,8 @@ package com.jdodev.emilie;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import android.annotation.SuppressLint;
+import android.annotation.TargetApi;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -10,10 +11,12 @@ import android.content.IntentFilter;
 import android.net.wifi.ScanResult;
 import android.net.wifi.WifiManager;
 import android.net.wifi.WifiManager.WifiLock;
+import android.os.Build;
 import android.os.PowerManager;
 import android.util.Log;
 
 
+@TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
 public class APSynch
 {
 
@@ -53,17 +56,21 @@ public class APSynch
 	 */
 	public String   getData() { return (null==mTargetInfo)?null:mTargetInfo.LastData; } 
 
-	/** Get Android Device Scan rate
+	/** Get Android Device Scan duration
 	 * @return Number of miliseconds between each scan
 	 */
-	public long    getScanRate()         { return (null==mDeviceInfo)?0:mDeviceInfo.ScanDuration; }
+	public long    getScanDuration()         { return (null==mDeviceInfo)?0:mDeviceInfo.ScanDuration; }
 	
+	/** Get Android Device Scan duration error
+	 * @return Number of miliseconds between getScanDuration() value and farest value 
+	 */
+	public long    getScanDurationError()         { return (null==mDeviceInfo)?0:mDeviceInfo.ScanDurationError; }
 	
 	// Listeners  
-	public static final int CAPTURE_ERROR = 1;
-	public static final int CAPTURE_AP_MISSING = 2;
-	public static final int CAPTURE_SCANERROR = 3;
-	public static final int CAPTURE_SYNCERROR = 4;
+	public static final int CAPTURE_AP_MISSING     = 10;
+	public static final int CAPTURE_SCANERROR      = 11;
+	public static final int CAPTURE_SYNCERROR      = 12;
+	public static final int CAPTURE_AP_UNTRUSTABLE = 13;
 	
 	public interface EventsListener
 	{
@@ -109,6 +116,7 @@ public class APSynch
 	protected static final int CAPTURE_BEACON_CNT = 4; // nb of beacons used for really start sync
 	protected static final int SYNC_BEACON_CNT = 10;   // nb max of beacons to compute sync
 	protected static final int SYNC_OUTBEACON_CNT = 4; // nb max of beacons missing before consider the AP offline
+
 	
 	/* ctx, handler, listerners */
 	protected Context mCtx = null;
@@ -140,6 +148,7 @@ public class APSynch
 	
 
 	/* Unique constructor */	
+	@SuppressLint("NewApi")
 	public APSynch(Context ctx, EventsListener listener)
 	{
 		mCtx = ctx;
@@ -243,11 +252,12 @@ public class APSynch
 		elt.wifiScanList = beacons;
 		mDeviceInfo.CaptureInfo[mCurrCapIdx++] = elt;
 		
-		if (mCurrCapIdx > CAPTURE_BEACON_CNT) {
+		if (mCurrCapIdx >= CAPTURE_BEACON_CNT) {
 			
 			// Automatically take the first AP if not specified
 			if (mTargetInfo.BSSID==null) {
 				mTargetInfo.BSSID=beacons.get(0).BSSID;
+				mTargetInfo.Channel=beacons.get(0).frequency;
 			}
 
 			// 1- figure out device scan duration
@@ -265,14 +275,24 @@ public class APSynch
 			// 1.3 max diff
 			long maxdiff  = 0;
 			for(int i=0; i<CAPTURE_BEACON_CNT-1; i++) {
-				long diff = Math.abs(mean - delta[i-1]);
+				long diff = Math.abs(mean - delta[i]);
 				if (diff>maxdiff) maxdiff = diff; 
 			}
 			
-			// TODO: remove too far value, device scan duration doesn't seems to be trustable ? 
+			// 1.4 check
+			if (((float)maxdiff/(float)mean)>0.25f) {
+				mSTATE = STATE.IDLE;
+				mListener.onAPError(CAPTURE_AP_UNTRUSTABLE);
+				return;
+			}
+			
 			mDeviceInfo.ScanDuration = mean;
 			mDeviceInfo.ScanDurationError = maxdiff;
-			
+
+			Log.i(LOG_TAG, "Device scan duration:" + mDeviceInfo.ScanDuration+" ms");
+			Log.i(LOG_TAG, "Device scan duration error:" + mDeviceInfo.ScanDurationError+" ms");
+			Log.i(LOG_TAG, "Target AP:" + beacons.get(0).SSID);
+			Log.i(LOG_TAG, "Target AP:" + mTargetInfo.BSSID+" "+mTargetInfo.Channel + "MHz");
 						
 			// 2- Find expected BSSID
 			for(int i=0; i<CAPTURE_BEACON_CNT; i++)
@@ -281,7 +301,6 @@ public class APSynch
 				for(ScanResult sr : mDeviceInfo.CaptureInfo[i].wifiScanList) {
 					if (sr.BSSID.compareTo(mTargetInfo.BSSID)==0) {
 						found = true;
-						mTargetInfo.Channel = sr.frequency;
 						break;
 					}
 				}
@@ -305,13 +324,13 @@ public class APSynch
 					}
 				}
 				item.sysdiff = 0;
-				item.sysdate = 0;
+				item.apdiff = 0;
 				mTargetInfo.SyncInfo.add(item);
 			}
 			
 			// 4- Compute Regression line	
 			mTargetInfo.TimeConvert = new FLine();
-			if (ComputeLinearRegression(mTargetInfo.SyncInfo, mTargetInfo.TimeConvert, mDeviceInfo.ScanDuration)) {
+			if (ComputeLinearRegression(mTargetInfo.SyncInfo, mTargetInfo.TimeConvert)) {
 				mSTATE = STATE.SYNC;
 				mListener.onAPSync();
 			} else {
@@ -366,7 +385,7 @@ public class APSynch
 		item.sysdate = System.currentTimeMillis();
 		item.apdate  = beacon.timestamp/1000L; /* in Milliseconds */
 		item.sysdiff = 0;
-		item.sysdate = 0;
+		item.apdiff = 0;
 		mTargetInfo.SyncInfo.add(item);
 		
 		if(mTargetInfo.SyncInfo.size() > SYNC_BEACON_CNT) {
@@ -374,7 +393,7 @@ public class APSynch
 		}
 		
 		// Compute Regression line	
-		if (!ComputeLinearRegression(mTargetInfo.SyncInfo, mTargetInfo.TimeConvert, mDeviceInfo.ScanDuration)) {		
+		if (!ComputeLinearRegression(mTargetInfo.SyncInfo, mTargetInfo.TimeConvert)) {		
 			mSTATE = STATE.IDLE;
 			mListener.onAPOutOfSync();
 			return;
@@ -433,6 +452,8 @@ public class APSynch
 					}
 					break;						
 			}
+			
+			Log.d(LOG_TAG, "Beacons received ("+mSTATE+")");
 		}
 	}
 	
@@ -462,7 +483,7 @@ public class APSynch
 	}
 	
 
-	protected boolean ComputeLinearRegression(List<SyncInfo> info, FLine line, float maxSysDiff ) {
+	protected boolean ComputeLinearRegression(List<SyncInfo> info, FLine line) {
 		
 		line.a = 0;
 		line.b = 0;
@@ -479,34 +500,44 @@ public class APSynch
 		long aplast=0;
 		long sysfirst=info.get(0).sysdate;
 		long apfirst=info.get(0).apdate;
+		Boolean reset = true;
 		
 		for (int i=0; i<sz; i++) {
 			SyncInfo s = info.get(i);
 
-			if (syslast==0) syslast=s.sysdate;
-			if (aplast==0)  aplast=s.apdate;
-			s.sysdiff = s.sysdate - syslast;
-			s.apdiff  = s.apdate - syslast;
-			syslast=s.sysdate;
-			aplast=s.apdate;
-						
-			/* sys diff is anormally long (maybe we have been preempted) */
-			/* or scan diff and ys diff has a big mismatch (wifi error ?) */
-			if ((s.sysdiff > (maxSysDiff * 0.25f)) || (s.apdiff > (s.sysdiff * 0.25f)))  {
-				syslast=0;
-				aplast=0;
-				Log.e(LOG_TAG, "invalid " + s.toString());
-				continue;
-			}
+			if (reset) {
+				syslast=s.sysdate;
+				aplast=s.apdate;
+				reset = false;
 			
-			LPoint p = new LPoint(s.sysdate-sysfirst, s.apdate-apfirst);
-			M.add(p);
+			} else {
+				s.sysdiff = s.sysdate - syslast;
+				s.apdiff  = s.apdate - aplast;
+				syslast=s.sysdate;
+				aplast=s.apdate;
+							
+				/* check */
+				float err = Math.abs(s.apdiff - s.sysdiff);
+				err = err / (float)s.apdiff;
+				if ((err > 0.25f) || (s.apdiff<0) || (s.sysdiff<0))  {
+					reset = true;
+					Log.e(LOG_TAG, " ap:" + s.apdiff +" sys:" + s.sysdiff + " err:"+err);
+				} else {
+					Log.i(LOG_TAG, " ap:" + s.apdiff +" sys:" + s.sysdiff);					
+					LPoint p = new LPoint(s.sysdate-sysfirst, s.apdate-apfirst);
+					M.add(p);
+				}
+			}
 		}
 		
 		
 		// 3- compute regression
 		
 		int n = M.size(); // number of points
+		if (n<2) {
+			return false;
+		}
+		
 		
 		/* Mean values */
 		long sX = 0;

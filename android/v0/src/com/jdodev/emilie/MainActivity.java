@@ -1,5 +1,7 @@
 package com.jdodev.emilie;
 
+import java.text.DecimalFormat;
+
 import com.jdodev.emilie.APSynch.STATE;
 import com.jdodev.emilie.R;
 
@@ -48,7 +50,12 @@ public class MainActivity extends Activity implements APSynch.EventsListener {
 
 	@Override
 	public void onAPSync() {
-		String msg = "Synch to " + mAp.getBSSID() + " " + mAp.getFreq() + "MHz " + " scan " + mAp.getScanRate() + "ms";
+		float err = mAp.getScanDurationError() / mAp.getScanDuration() * 100;
+		String serr = new DecimalFormat("#.##").format(err);
+		
+		String msg = mAp.getBSSID() + " " + mAp.getFreq() + "MHz ";
+		msg += " scan " + mAp.getScanDuration() + "ms (" + serr + "%)";
+		
 		Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_SHORT).show();
 		mHandler.postDelayed(updateTimerThread, 0);
 	}
