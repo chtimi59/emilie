@@ -35,6 +35,11 @@ public class APSynch
 	 */
 	public STATE  getStatus()            { return mSTATE; }
 
+	/** Get AP SSID
+	 * @return AP SSID or null if not sync
+	 */
+	public String getSSID()             { return (null==mTargetInfo)?null:mTargetInfo.SSID; }
+	
 	/** Get AP BSSID
 	 * @return AP MAC address or null if not sync
 	 */
@@ -74,17 +79,20 @@ public class APSynch
 	
 	public interface EventsListener
 	{
-		/** AP is synchronized event! */
-		public void onAPSync();
-		
-		/** AP is no more synchronized event! */
-		public void onAPOutOfSync();
-		
+		/** State change event! */
+		public void onAPStateChange(STATE state);
+
 		/** AP have send data event! */
-		public void onAPEvent(String data);
+		public void onAPDataReceived(String data);
 		
 		/** An error appear see error code above */
 		public void onAPError(int errorCode);
+		
+		/** AP Capture Progress */
+		public void onAPCaptureProgress(int pos, int count);
+
+		/** AP Sync has been updated */
+		public void onAPSynchUpdated();
 	}
 
 	
@@ -113,15 +121,20 @@ public class APSynch
 	
 	/* Config */
 	protected static final String LOG_TAG = "APSYNC";	
-	protected static final int CAPTURE_BEACON_CNT = 4; // nb of beacons used for really start sync
-	protected static final int SYNC_BEACON_CNT = 10;   // nb max of beacons to compute sync
-	protected static final int SYNC_OUTBEACON_CNT = 4; // nb max of beacons missing before consider the AP offline
+	protected static final int CAPTURE_BEACON_CNT  = 5;   // nb of beacons used for really start sync
+	protected static final int SYNC_BEACON_CNT     = 20;  // nb max of beacons to compute sync
+	protected static final int SYNC_OUTBEACON_CNT  = 4;   // nb max of beacons missing before consider the AP offline
 
 	
 	/* ctx, handler, listerners */
 	protected Context mCtx = null;
 	protected EventsListener mListener = null;
 	protected STATE mSTATE = STATE.UNUSABLE;
+	protected void setStatus(STATE value) {  
+		 if (mSTATE == value)  { return; } else { mSTATE = value; }
+		 if (mListener!=null) mListener.onAPStateChange(mSTATE);
+	}
+	
 	protected PowerManager.WakeLock mWakeLock = null;
 	protected WifiManager mMainWifiObj = null;
 	protected WifiLock mWifiLock = null;
@@ -130,6 +143,7 @@ public class APSynch
 	/* Targeted AP info */
 	protected TargetInfo mTargetInfo = null;
 	protected class TargetInfo {
+		public String         SSID;
 		public String         BSSID;
 		public int            Channel;
 		public String         LastData;
@@ -166,10 +180,11 @@ public class APSynch
 		// WIFI !
         mMainWifiObj = (WifiManager) mCtx.getSystemService(Context.WIFI_SERVICE); 
         mMainWifiObj.disconnect();
-        if (!mMainWifiObj.isScanAlwaysAvailable()) {
+       /* if (!mMainWifiObj.isScanAlwaysAvailable()) {
         	release();
         	return;
-        }
+        }*/
+        
         mMainWifiObj.setWifiEnabled(true);
         mWifiLock = mMainWifiObj.createWifiLock( WifiManager.WIFI_MODE_SCAN_ONLY, "EMILIE_TAG");
         mWifiLock.acquire();
@@ -178,7 +193,7 @@ public class APSynch
         mWifiReceiver = new WifiScanReceiver();
         mCtx.registerReceiver(mWifiReceiver, new IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION));
         
-        mSTATE = STATE.IDLE;
+        setStatus(STATE.IDLE);
         
         
         /* Some tests */
@@ -189,13 +204,14 @@ public class APSynch
 	/* APSync release (can be restart after) */
 	public void release()
 	{
+		 setStatus(STATE.UNUSABLE);
+		
 		 if (null!=mWifiLock)     mWifiLock.release();
 		 if (null!=mWakeLock)     mWakeLock.release();
 		 if ((null!=mWifiReceiver) && (null!=mCtx)) mCtx.unregisterReceiver(mWifiReceiver);
 		 
 		 mCtx = null;
-		 mListener = null;
-		 mSTATE = STATE.UNUSABLE;
+		 mListener = null;		 
 		 mWakeLock = null;
 		 mMainWifiObj = null;
 		 mWifiLock = null;
@@ -238,7 +254,7 @@ public class APSynch
 
 		mCurrCapIdx = 0;
 		  
-		if (mMainWifiObj.startScan()) mSTATE = STATE.CAPTURING;
+		if (mMainWifiObj.startScan()) setStatus(STATE.CAPTURING);
 		return (STATE.CAPTURING==mSTATE);
 	}
 	
@@ -252,10 +268,13 @@ public class APSynch
 		elt.wifiScanList = beacons;
 		mDeviceInfo.CaptureInfo[mCurrCapIdx++] = elt;
 		
+		mListener.onAPCaptureProgress(mCurrCapIdx, CAPTURE_BEACON_CNT);
+		
 		if (mCurrCapIdx >= CAPTURE_BEACON_CNT) {
 			
 			// Automatically take the first AP if not specified
 			if (mTargetInfo.BSSID==null) {
+				mTargetInfo.SSID=beacons.get(0).SSID;
 				mTargetInfo.BSSID=beacons.get(0).BSSID;
 				mTargetInfo.Channel=beacons.get(0).frequency;
 			}
@@ -280,11 +299,11 @@ public class APSynch
 			}
 			
 			// 1.4 check
-			if (((float)maxdiff/(float)mean)>0.25f) {
-				mSTATE = STATE.IDLE;
+			/*if (((float)maxdiff/(float)mean)>0.25f) {
 				mListener.onAPError(CAPTURE_AP_UNTRUSTABLE);
+				setStatus(STATE.IDLE);				
 				return;
-			}
+			}*/
 			
 			mDeviceInfo.ScanDuration = mean;
 			mDeviceInfo.ScanDurationError = maxdiff;
@@ -305,8 +324,8 @@ public class APSynch
 					}
 				}
 				if (!found) {
-					mSTATE = STATE.IDLE;
 					mListener.onAPError(CAPTURE_AP_MISSING);
+					setStatus(STATE.IDLE);
 					return;
 				}
 			}
@@ -331,18 +350,19 @@ public class APSynch
 			// 4- Compute Regression line	
 			mTargetInfo.TimeConvert = new FLine();
 			if (ComputeLinearRegression(mTargetInfo.SyncInfo, mTargetInfo.TimeConvert)) {
-				mSTATE = STATE.SYNC;
-				mListener.onAPSync();
+				setStatus(STATE.SYNC);
+				mMainWifiObj.startScan();
+				
 			} else {
-				mSTATE = STATE.IDLE;
 				mListener.onAPError(CAPTURE_SYNCERROR);
+				setStatus(STATE.IDLE);
 			}
 			
 		} else {
 			// ask for a new beacon
 			if (!mMainWifiObj.startScan()) {
-				mSTATE = STATE.IDLE;
 				mListener.onAPError(CAPTURE_SCANERROR);
+				setStatus(STATE.IDLE);
 				return;
 			}
 		}
@@ -374,8 +394,7 @@ public class APSynch
 	/** Stop the synchronization
 	 */
 	public void stop() {
-		mSTATE = STATE.IDLE;
-		mListener.onAPOutOfSync();
+		setStatus(STATE.IDLE);
 	}
 	
 	private void onSyncBeacons(ScanResult beacon) {
@@ -394,15 +413,15 @@ public class APSynch
 		
 		// Compute Regression line	
 		if (!ComputeLinearRegression(mTargetInfo.SyncInfo, mTargetInfo.TimeConvert)) {		
-			mSTATE = STATE.IDLE;
-			mListener.onAPOutOfSync();
+			setStatus(STATE.IDLE);
 			return;
 		}
 		
+		mListener.onAPSynchUpdated();
 		
 		if (mTargetInfo.LastData.compareTo(beacon.SSID)!=0) {
 			mTargetInfo.LastData = beacon.SSID;
-			mListener.onAPEvent(mTargetInfo.LastData);
+			mListener.onAPDataReceived(mTargetInfo.LastData);			
 		}
 		
 		// restart a scan
@@ -441,24 +460,24 @@ public class APSynch
 					FoundWtchDog--;
 					for(ScanResult sr : mMainWifiObj.getScanResults()) {
 						if (sr.BSSID.compareTo(mTargetInfo.BSSID)==0) {
+							GRRRR = sr.timestamp;
 							onSyncBeacons(sr);
 							FoundWtchDog++;
 							break;
 						}
 					}
 					if (FoundWtchDog==0) {
-						mSTATE = STATE.IDLE;
-						mListener.onAPOutOfSync();
+						setStatus(STATE.IDLE);
 					}
 					break;						
 			}
 			
-			Log.d(LOG_TAG, "Beacons received ("+mSTATE+")");
+			//Log.d(LOG_TAG, "Beacons received ("+mSTATE+")");
 		}
 	}
 	
 	
-	
+	public long GRRRR = 0;
 	
 	
 	
@@ -476,10 +495,17 @@ public class APSynch
 		public long y;
 	}
 	
-	public class FLine {
+	public class FLine
+	{
+		public long xoff = 0;
+		public long yoff = 0;
+		
 		public float a;
 		public float b;
-		public long val(long x) { return (long)(a*(float)x+(float)b); }
+		public long val(long x) {
+			float X = (x-xoff);
+			return (long)(a*(float)X+(float)b) + yoff;
+		}
 	}
 	
 
@@ -498,18 +524,20 @@ public class APSynch
 		// 1- Compute diff and origin and feed M
 		long syslast=0;
 		long aplast=0;
-		long sysfirst=info.get(0).sysdate;
-		long apfirst=info.get(0).apdate;
+		line.xoff = info.get(0).sysdate;
+		line.yoff = info.get(0).apdate;		
 		Boolean reset = true;
 		
+		//Log.i("beacons", "--");
 		for (int i=0; i<sz; i++) {
 			SyncInfo s = info.get(i);
 
 			if (reset) {
+				//Log.d("beacons", "" + s.apdate + "," + s.sysdate + ",0,0");
 				syslast=s.sysdate;
 				aplast=s.apdate;
 				reset = false;
-			
+				
 			} else {
 				s.sysdiff = s.sysdate - syslast;
 				s.apdiff  = s.apdate - aplast;
@@ -521,10 +549,10 @@ public class APSynch
 				err = err / (float)s.apdiff;
 				if ((err > 0.25f) || (s.apdiff<0) || (s.sysdiff<0))  {
 					reset = true;
-					Log.e(LOG_TAG, " ap:" + s.apdiff +" sys:" + s.sysdiff + " err:"+err);
+					//Log.e("beacons", "" + s.apdate + "," + s.sysdate + "," + s.apdiff +"," + s.sysdiff);
 				} else {
-					Log.i(LOG_TAG, " ap:" + s.apdiff +" sys:" + s.sysdiff);					
-					LPoint p = new LPoint(s.sysdate-sysfirst, s.apdate-apfirst);
+					//Log.i("beacons", "" + s.apdate + "," + s.sysdate + "," + s.apdiff +"," + s.sysdiff);
+					LPoint p = new LPoint(s.sysdate-line.xoff, s.apdate-line.yoff);
 					M.add(p);
 				}
 			}

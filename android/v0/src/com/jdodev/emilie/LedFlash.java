@@ -32,11 +32,11 @@ public class LedFlash {
 		if (mLedStatus) {
     		mCameraSetting.setFlashMode(Parameters.FLASH_MODE_TORCH);
     		mCamera.setParameters(mCameraSetting);
-    		mCamera.startPreview();
+    		//mCamera.startPreview();
     	} else {
     		mCameraSetting.setFlashMode(Parameters.FLASH_MODE_OFF);
 	    	mCamera.setParameters(mCameraSetting);
-	    	mCamera.stopPreview();
+	    	//mCamera.stopPreview();
     	}
     }
 	
