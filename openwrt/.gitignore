@@ -1,5 +1,6 @@
 BSDmakefile
 Config.in
+.config.old
 LICENSE
 Makefile
 README

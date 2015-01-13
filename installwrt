@@ -1,0 +1,25 @@
+#!/bin/bash
+
+#remove open
+echo delete openwrt folder
+rm -rf openwrt
+
+#get right revision
+svn co svn://svn.openwrt.org/openwrt/trunk/ --revision 43860 openwrt
+
+pushd openwrt
+echo feeds update...
+./scripts/feeds update
+./scripts/feeds install
+./scripts/feeds install -a    
+
+#cleanup
+echo cleaning...
+rm -rf .svn
+rm -f .gitattributes
+
+#go back to git
+popd
+echo git sync
+git checkout openwrt
+
