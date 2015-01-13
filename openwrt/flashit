@@ -1,0 +1,39 @@
+#!/bin/bash
+
+FILE=$1
+if [ ! -e $FILE ]; then
+echo "File $FILE do not exists"
+exit 1
+fi
+
+read -p "Power DOWN your device and press [return]"
+echo "Now Power UP your device and wait"
+stty -F /dev/ttyUSB0 ispeed 115200 ospeed 115200 -echo
+T=0
+while [ $T -lt 50 ]
+do 
+T=$[$T+1]
+echo $'\cc' > /dev/ttyUSB0
+sleep 0.1
+done
+chat -t1 "" "" "CFE>" < /dev/ttyUSB0 >/dev/ttyUSB0
+if [ $? -ne 0 ]; then
+echo "Entering in GEC mode failed (timeout)"
+exit 1
+fi
+
+chat -t2 -e "" "help" "XXX"  < /dev/ttyUSB0 > /dev/ttyUSB0
+
+pushd `dirname $FILE`
+FILENAME=`basename $FILE`
+echo "start tftp client with $FILENAME"
+pwd
+tftp 192.168.1.1 << -EOF
+binary
+rexmt 1
+timeout 60
+trace
+put $FILE 
+quit
+-EOF
+echo 
