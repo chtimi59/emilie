@@ -1,8 +1,0 @@
-Package: hello
-Version: 0-1
-Depends: libc
-Source: package/emilie/hello
-Section: opt
-Architecture: brcm47xx
-Installed-Size: 1384
-Description:  My first Hello world package

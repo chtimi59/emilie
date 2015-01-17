@@ -16,8 +16,7 @@ uninstall:
 	@if [ -e $(OUTDIR_ESC) ]; then find $(OUTDIR_ESC) -type f | sed 's/$(OUTDIR_ESC)/$(ROOTFSDIR_ESC)/' | xargs rm -f; fi
 
 cpfiles:
-	@mkdir -p $(OUTDIR)
-	@cp -rf ./files/* $(OUTDIR)
+	@if [ -e ./files/ ]; then mkdir -p $(OUTDIR) cp -rf ./files/* $(OUTDIR); fi
 
 root.squashfs:
 	$(MKSQUASHFS) $(ROOTFSDIR) root.squashfs -nopad -noappend -root-owned -comp xz -Xpreset 9 -Xe -Xlc 0 -Xlp 2 -Xpb 2 -b 256k \
