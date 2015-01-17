@@ -1,0 +1,175 @@
+make[1]: Entering directory `/home/jdo/dev/emilie/openwrt'
+make[2]: Entering directory `target/linux'
+make[3]: Entering directory `target/linux/brcm47xx'
+
+$(SCRIPTS_DIR)kconfig.pl  + + target/linux/generic/config-3.14
+			  target/linux/brcm47xx/config-3.14 /
+			  target/linux/brcm47xx/mips74k/config-default > BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.target
+
+awk '/^(#[[:space:]]+)?CONFIG_KERNEL/{sub("CONFIG_KERNEL_","CONFIG_");print}' .config >> BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.target
+echo "# CONFIG_KALLSYMS_EXTRA_PASS is not set" >> BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.target
+echo "# CONFIG_KALLSYMS_ALL is not set" >> BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.target
+echo "# CONFIG_KALLSYMS_UNCOMPRESSED is not set" >> BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.target
+echo "# CONFIG_KPROBES is not set" >> BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.target
+
+
+
+$(SCRIPTS_DIR)metadata.pl kconfig tmp/.packageinfo .config > BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.override
+$(SCRIPTS_DIR)kconfig.pl 'm+' '+' BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.target /dev/null BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.override > BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config
+
+mv BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.old
+
+grep -v INITRAMFS BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config.old > BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config
+echo 'CONFIG_INITRAMFS_SOURCE=""' >> BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config
+
+rm -rf BUILD_DIR_TRGT/linux-brcm47xx_mips74k/modules
+
+export MAKEFLAGS= ;
+[ -d BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/user_headers ] || 
+	make -C BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27
+		HOSTCFLAGS="-O2 -Istaging_dir/host/include -Istaging_dir/host/usr/include -Wall -Wmissing-prototypes -Wstrict-prototypes"
+		CROSS_COMPILE="mipsel-openwrt-linux-uclibc-" ARCH="mips" KBUILD_HAVE_NLS=no CONFIG_SHELL="/bin/bash" V='' CC="mipsel-openwrt-linux-uclibc-gcc" 	
+		INSTALL_HDR_PATH=BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/user_headers headers_install
+	. include/shell.sh; grep '=[ym]' BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.config | LC_ALL=C sort | md5s > 
+		BUILD_DIR_TRGT/linux-brcm47xx_mips74k/			linux-3.14.27/.vermagic
+
+touch BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.configured
+rm -f BUILD_DIR_TRGT/root-brcm47xx/init
+
+make -C BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27 HOSTCFLAGS="-O2 -Istaging_dir/host/include -Istaging_dir/host/usr/include -Wall -Wmissing-prototypes -Wstrict-prototypes" CROSS_COMPILE="mipsel-openwrt-linux-uclibc-" ARCH="mips" KBUILD_HAVE_NLS=no CONFIG_SHELL="/bin/bash" V='' CC="mipsel-openwrt-linux-uclibc-gcc" all modules
+
+
+
+make[4]: Entering directory `BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27'
+scripts/kconfig/conf --silentoldconfig Kconfig
+#
+# configuration written to .config
+#
+make[4]: Leaving directory `BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27'
+make[4]: Entering directory `BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27'
+  CHK     include/config/kernel.release
+  CHK     include/generated/uapi/linux/version.h
+  CHK     include/generated/utsrelease.h
+  CALL    scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+  Building modules, stage 2.
+  MODPOST 58 modules
+make[4]: Nothing to be done for `modules'.
+make[4]: Leaving directory `BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27'
+
+mipsel-openwrt-linux-uclibc-objcopy -O binary -R .reginfo -R .notes -R .note -R .comment -R .mdebug -R .note.gnu.build-id -S BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/vmlinux BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux
+mipsel-openwrt-linux-uclibc-objcopy -R .reginfo -R .notes -R .note -R .comment -R .mdebug -R .note.gnu.build-id -S BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/vmlinux BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux.elf
+
+cp -fpR BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/vmlinux BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux.debug
+touch BUILD_DIR_TRGT/linux-brcm47xx_mips74k/linux-3.14.27/.image
+
+
+make -C image compile install TARGET_BUILD=
+make[4]: Entering directory `target/linux/brcm47xx/image'
+
+
+
+make[4]: Nothing to be done for `compile'.
+
+# Optimized LZMA compression (with dictionary), handled by lzma-loader.
+cat BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux | staging_dir/host/bin/lzma e -si -so -eos -lc1 -lp2 -pb2 > BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux.lzma
+# Less optimal LZMA compression (no dictionary), handled by CFE.
+staging_dir/host/bin/lzma e -so -d16 BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux > BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux-nodictionary.lzma
+gzip -nc9 BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux > BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux.gz
+rm -f BUILD_DIR_TRGT/linux-brcm47xx_mips74k/loader.gz
+
+export MAKEFLAGS= ;make -w -C lzma-loader BUILD_DIR="BUILD_DIR_TRGT/linux-brcm47xx_mips74k" TARGET="BUILD_DIR_TRGT/linux-brcm47xx_mips74k" clean install
+
+
+
+make[5]: Entering directory `target/linux/brcm47xx/image/lzma-loader'
+
+mkdir BUILD_DIR_TRGT/linux-brcm47xx_mips74k/lzma-loader
+cp -fpR ./src/* BUILD_DIR_TRGT/linux-brcm47xx_mips74k/lzma-loader/
+touch BUILD_DIR_TRGT/linux-brcm47xx_mips74k/lzma-loader/.prepared
+
+make -C BUILD_DIR_TRGT/linux-brcm47xx_mips74k/lzma-loader CC="mipsel-openwrt-linux-uclibc-gcc" \
+		LD="mipsel-openwrt-linux-uclibc-ld" CROSS_COMPILE="mipsel-openwrt-linux-uclibc-"
+make[6]: Entering directory `BUILD_DIR_TRGT/linux-brcm47xx_mips74k/lzma-loader'
+
+mipsel-openwrt-linux-uclibc-gcc -D__KERNEL__ -Wall -Wstrict-prototypes -Wno-trigraphs -Os -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -ffunction-sections -pipe -mlong-calls -fno-common -mabi=32 -march=mips32 -Wa,-32 -Wa,-march=mips32 -Wa,-mips32 -Wa,--trap -DLOADADDR=0x80001000 -D_LZMA_IN_CB -D__ASSEMBLY__ -DBZ_TEXT_START=0x80400000   -c -o head.o head.S
+
+mipsel-openwrt-linux-uclibc-gcc -D__KERNEL__ -Wall -Wstrict-prototypes -Wno-trigraphs -Os -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -ffunction-sections -pipe -mlong-calls -fno-common -mabi=32 -march=mips32 -Wa,-32 -Wa,-march=mips32 -Wa,-mips32 -Wa,--trap -DLOADADDR=0x80001000 -D_LZMA_IN_CB   -c -o decompress.o decompress.c
+
+mipsel-openwrt-linux-uclibc-gcc -D__KERNEL__ -Wall -Wstrict-prototypes -Wno-trigraphs -Os -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 -mno-abicalls -fno-pic -ffunction-sections -pipe -mlong-calls -fno-common -mabi=32 -march=mips32 -Wa,-32 -Wa,-march=mips32 -Wa,-mips32 -Wa,--trap -DLOADADDR=0x80001000 -D_LZMA_IN_CB   -c -o LzmaDecode.o LzmaDecode.c
+
+mipsel-openwrt-linux-uclibc-ld -static --gc-sections -no-warn-mismatch -T decompress.lds -o decompress decompress.o LzmaDecode.o
+mipsel-openwrt-linux-uclibc-objcopy -O binary -R .reginfo -R .note -R .comment -R .mdebug -S decompress decompress.image
+mipsel-openwrt-linux-uclibc-ld -no-warn-mismatch -T data.lds -r -o data.o -b binary decompress.image -b elf32-tradlittlemips
+mipsel-openwrt-linux-uclibc-ld -static --gc-sections -no-warn-mismatch -T loader.lds -o loader.o head.o data.o
+mipsel-openwrt-linux-uclibc-objcopy -O binary -R .reginfo -R .note -R .comment -R .mdebug -S loader.o loader
+gzip -nc9 loader > loader.gz
+cp loader.o loader.elf
+
+make[6]: Leaving directory `BUILD_DIR_TRGT/linux-brcm47xx_mips74k/lzma-loader'
+make[5]: Leaving directory `target/linux/brcm47xx/image/lzma-loader'
+echo -ne "\\x00" >> BUILD_DIR_TRGT/linux-brcm47xx_mips74k/loader.gz
+rm -f BUILD_DIR_TRGT/linux-brcm47xx_mips74k/fs_mark
+echo -ne '\xde\xad\xc0\xde' > BUILD_DIR_TRGT/linux-brcm47xx_mips74k/fs_mark
+staging_dir/host/bin/padjffs2 BUILD_DIR_TRGT/linux-brcm47xx_mips74k/fs_mark 4 8 16 64 128 256
+padding image to 00001000
+padding image to 00002000
+padding image to 00004000
+padding image to 00010000
+padding image to 00020000
+padding image to 00040000
+
+
+# Use symbolic permissions to avoid clobbering SUID/SGID/sticky bits
+/usr/bin/find BUILD_DIR_TRGT/root-brcm47xx -type f -not -perm +0100 -not -name 'ssh_host*' -not -name 'shadow' -print0 | xargs -r -0 chmod u+rw,g+r,o+r
+/usr/bin/find BUILD_DIR_TRGT/root-brcm47xx -type f -perm +0100 -print0 | xargs -r -0 chmod u+rwx,g+rx,o+rx
+/usr/bin/find BUILD_DIR_TRGT/root-brcm47xx -type d -print0 | xargs -r -0 chmod u+rwx,g+rx,o+rx
+install -d -m0755 BUILD_DIR_TRGT/root-brcm47xx/tmp BUILD_DIR_TRGT/root-brcm47xx/overlay
+
+chmod 1777 BUILD_DIR_TRGT/root-brcm47xx/tmp
+
+staging_dir/host/bin/mksquashfs4 
+		BUILD_DIR_TRGT/root-brcm47xx
+		BUILD_DIR_TRGT/linux-brcm47xx_mips74k/root.squashfs
+		-nopad -noappend -root-owned -comp xz -Xpreset 9 -Xe -Xlc 0 -Xlp 2 -Xpb 2  -b 256k -p '/dev d 755 0 0' -p '/dev/console c 600 0 0 5 1' -processors 1
+
+Parallel mksquashfs: Using 1 processor
+Creating 4.0 filesystem on BUILD_DIR_TRGT/linux-brcm47xx_mips74k/root.squashfs, block size 262144.
+
+[==============|                                                 ] 100/424  23%
+[=============================/                                  ] 200/424  47%
+[============================================/                   ] 300/424  70%
+[===========================================================/    ] 400/424  94%
+[===============================================================-] 424/424 100%
+Exportable Squashfs 4.0 filesystem, xz compressed, data block size 262144
+	compressed data, compressed metadata, compressed fragments, no xattrs
+	duplicates are removed
+Filesystem size 1830.27 Kbytes (1.79 Mbytes)
+	36.01% of uncompressed filesystem size (5083.13 Kbytes)
+Inode table size 5098 bytes (4.98 Kbytes)
+	23.01% of uncompressed inode table size (22160 bytes)
+Directory table size 6492 bytes (6.34 Kbytes)
+	50.84% of uncompressed directory table size (12769 bytes)
+Number of duplicate files found 3
+Number of inodes 658
+Number of files 419
+Number of fragments 12
+Number of symbolic links  183
+Number of device nodes 1
+Number of fifo nodes 0
+Number of socket nodes 0
+Number of directories 55
+Number of ids (unique uids + gids) 1
+Number of uids 1
+	root (0)
+Number of gids 1
+	root (0)
+
+staging_dir/host/bin/trx -o bin/brcm47xx/openwrt-brcm47xx-mips74k-squashfs.trx
+			-f BUILD_DIR_TRGT/linux-brcm47xx_mips74k/loader.gz
+			-f BUILD_DIR_TRGT/linux-brcm47xx_mips74k/vmlinux.lzma -a 1024
+			-f BUILD_DIR_TRGT/linux-brcm47xx_mips74k/root.squashfs  -a 0x10000
+			-A BUILD_DIR_TRGT/linux-brcm47xx_mips74k/fs_mark
+
+staging_dir/host/bin/addpattern -4 -p 32XN -v v1.0.4 -i bin/brcm47xx/openwrt-brcm47xx-mips74k-squashfs.trx -o bin/brcm47xx/openwrt-e2000_v1-squashfs.bin 
+
