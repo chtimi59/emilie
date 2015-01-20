@@ -1,25 +1,26 @@
 OPENWRT=$(shell readlink -f ../../)
-export STAGING_DIR=$(OPENWRT)/staging_dir
+include $(OPENWRT)/extra/bcm4717-toolchain.mk
 
-KERNEL = $(OPENWRT)/build_dir/toolchain-mipsel_74kc+dsp2_gcc-4.8-linaro_uClibc-0.9.33.2/linux
-LD=$(OPENWRT)/staging_dir/toolchain-mipsel_74kc+dsp2_gcc-4.8-linaro_uClibc-0.9.33.2/bin/mips-openwrt-linux-ld
-CROSS_COMPILE="mipsel-openwrt-linux-"
-EXTRA_LDSFLAGS="-I${OPENWRT}/build_dir/toolchain-mipsel_74kc+dsp2_gcc-4.8-linaro_uClibc-0.9.33.2/linux -include symtab.h"
-KBUILD_HAVE_NLS=no
-CONFIG_SHELL="/bin/bash" 
+MODULE_NAME="khello.ko"
 
-obj-m += hello.o
+SRCS= $(wildcard src/*.c)
+MODULE_SRCPATH=$(PWD)/src
+MODULE_OUTPATH=$(OUTDIR)/lib/modules/3.14.27
 
-.PHONY: all clean tt
 
-tt:
-	$(info fd;lksd)
-	touch tt
+.PHONY: all clean
 
-all:
-	make -C $(KERNEL) ARCH="mips" CC="$(OPENWRT)/staging_dir/toolchain-mipsel_74kc+dsp2_gcc-4.8-linaro_uClibc-0.9.33.2/bin/mipsel-openwrt-linux-gcc"  M=$(PWD) modules
-	touch rr
+all : $(MODULE_OUTPATH)/$(MODULE_NAME) cpfiles
 
-clean:
-        #make -C $(KERNEL) CC="${OPENWRT}/staging_dir/toolchain-mipsel_74kc+dsp2_gcc-4.8-linaro_uClibc-0.9.33.2/bin/mips-openwrt-linux-gcc"  M=$(PWD) clean
 
+$(MODULE_OUTPATH)/$(MODULE_NAME): $(SRCS)
+	make -C $(KERNEL) ARCH="mips" CROSS_COMPILE="mipsel-openwrt-linux-uclibc-" CC=$(CC) LD=$(LD) M=$(MODULE_SRCPATH) modules
+	@install -d -m0755 $(MODULE_OUTPATH)
+	cp $(MODULE_SRCPATH)/out.ko $(MODULE_OUTPATH)
+
+
+clean : 
+	make -C $(KERNEL) ARCH="mips" CROSS_COMPILE="mipsel-openwrt-linux-uclibc-" CC=$(CC) LD=$(LD) M=$(MODULE_SRCPATH) clean
+	@rm -rf $(OUTDIR)
+
+include $(OPENWRT)/extra/bcm4717-rules.mk

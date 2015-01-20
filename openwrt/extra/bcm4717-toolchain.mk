@@ -35,7 +35,7 @@ export CPPFLAGS=-I$(TARGET)/usr/include -I$(TARGET)/include -I$(TOOLCHAIN)/usr/i
 export LDFLAGS=-L$(TARGET)/usr/lib -L$(TARGET)/lib -L$(TOOLCHAIN)/usr/lib -L$(TOOLCHAIN)/lib 
 
 #COMMON FOLDERS
-export KERNEL=$(OPENWRT)/build_dir/toolchain-mipsel_74kc+dsp2_gcc-4.8-linaro_uClibc-0.9.33.2/linux
+export KERNEL=$(OPENWRT)/build_dir/target-mipsel_74kc+dsp2_uClibc-0.9.33.2/linux-brcm47xx_mips74k/linux-3.14.27
 export OUTDIR=out
 export OUTDIR_ESC=$(shell echo $(OUTDIR) | sed 's/\//\\\//g')
 export ROOTFSDIR=$(OPENWRT)/build_dir/target-mipsel_74kc+dsp2_uClibc-0.9.33.2/root-brcm47xx
