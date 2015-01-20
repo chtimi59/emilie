@@ -1,0 +1,1 @@
+cmd_drivers/leds/leds-gpio.ko := mipsel-openwrt-linux-uclibc-ld -r  -m elf32ltsmip -T /home/jdo/dev/emilie/openwrt/build_dir/target-mipsel_74kc+dsp2_uClibc-0.9.33.2/linux-brcm47xx_mips74k/linux-3.14.27/scripts/module-common.lds -s --build-id  -o drivers/leds/leds-gpio.ko drivers/leds/leds-gpio.o drivers/leds/leds-gpio.mod.o
