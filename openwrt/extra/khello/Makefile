@@ -16,7 +16,7 @@ all : $(MODULE_OUTPATH)/$(MODULE_NAME) cpfiles
 $(MODULE_OUTPATH)/$(MODULE_NAME): $(SRCS)
 	make -C $(KERNEL) ARCH="mips" CROSS_COMPILE="mipsel-openwrt-linux-uclibc-" CC=$(CC) LD=$(LD) M=$(MODULE_SRCPATH) modules
 	@install -d -m0755 $(MODULE_OUTPATH)
-	cp $(MODULE_SRCPATH)/out.ko $(MODULE_OUTPATH)
+	cp $(MODULE_SRCPATH)/out.ko $(MODULE_OUTPATH)/$(MODULE_NAME)
 
 
 clean : 
