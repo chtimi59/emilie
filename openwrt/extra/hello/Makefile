@@ -15,7 +15,7 @@ $(OUTDIR)/bin/hello2: $(OBJS)
 	$(CC) $(LDFLAGS) -o $(OUTDIR)/bin/hello2 $(OBJS)
 	@$(STRIP_R) $(OUTDIR)
 
-clean: 
+clean: uninstall
 	@rm -f  $(OBJS)
 	@rm -rf $(OUTDIR)
 

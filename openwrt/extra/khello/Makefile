@@ -19,7 +19,7 @@ $(MODULE_OUTPATH)/$(MODULE_NAME): $(SRCS)
 	cp $(MODULE_SRCPATH)/out.ko $(MODULE_OUTPATH)/$(MODULE_NAME)
 
 
-clean : 
+clean : uninstall
 	make -C $(KERNEL) ARCH="mips" CROSS_COMPILE="mipsel-openwrt-linux-uclibc-" CC=$(CC) LD=$(LD) M=$(MODULE_SRCPATH) clean
 	@rm -rf $(OUTDIR)
 

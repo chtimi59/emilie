@@ -13,6 +13,7 @@ install:
 uninstall:
 	$(info Remove files in $(ROOTFSDIR))
 	@if [ -e $(OUTDIR_ESC) ]; then find $(OUTDIR_ESC) -type f | sed 's/$(OUTDIR_ESC)/$(ROOTFSDIR_ESC)/' | xargs rm -f; fi
+	@if [ -e $(OUTDIR_ESC) ]; then find $(OUTDIR_ESC) -type l | sed 's/$(OUTDIR_ESC)/$(ROOTFSDIR_ESC)/' | xargs rm -f; fi
 
 cpfiles:
 	@if [ -e ./files/ ]; then mkdir -p $(OUTDIR) ; cp -rf ./files/* $(OUTDIR); fi
