@@ -8,7 +8,7 @@ fi
 
 FILE=$1
 if [ -z $FILE ]; then
-FILE=bin/brcm47xx/openwrt-e2000_v1-squashfs.bin
+FILE=e2000.bin
 fi
 
 if [ ! -e $FILE ]; then

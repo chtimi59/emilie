@@ -1,0 +1,54 @@
+# ---------------------------------
+#
+#       port 0 : WAN (VLAN2) 
+#       port 1 : LAN (VLAN3) 
+#       port 2 : LAN (VLAN3)
+#       port 3 : LAN (VLAN3)
+#       port 4 : STAS (VLAN4)
+#
+# eth0.2 : dchp
+# eth0.3 : 192.168.1.1
+# eth0.4 : 10.0.0.1
+#
+# ---------------------------------
+
+config switch
+        option name 'eth0' # name of device see swconfig list
+        option reset '1'
+        option enable_vlan '1'
+
+#WAN
+config switch_vlan
+        option device 'eth0'
+        option vlan '2'
+        option ports '0 8t'
+
+config interface 'wan'
+        option ifname 'eth0.2'
+        option proto 'dhcp'
+        option force_link '1'
+
+#LAN
+config switch_vlan
+        option device 'eth0'
+        option vlan '3'
+        option ports '1 2 3 8t'
+
+config interface 'lan'
+        option ifname 'eth0.3'
+        option proto 'static'
+        option ipaddr '192.168.1.1'
+        option netmask '255.255.255.0'
+        option type 'bridge'
+
+#SATS
+config switch_vlan
+        option device 'eth0'
+        option vlan '4'
+        option ports '4 8t'
+
+config interface 'stas'
+        option ifname 'eth0.4'
+        option proto 'static'
+        option ipaddr '10.0.0.1'
+        option netmask '255.0.0.0'
