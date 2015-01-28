@@ -1,10 +1,9 @@
 config wifi-device  radio0
         option type     mac80211
-        option channel  1
+        option channel  8
         option hwmode   11g
         option path     'bcma0:1'
         option htmode   HT20
-        # REMOVE THIS LINE TO ENABLE WIFI:
         option disabled 0
 
 config wifi-iface

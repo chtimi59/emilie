@@ -8,6 +8,9 @@ OBJS= $(SRCS:.c=.o)
 
 all: cpfiles
 
+install::
+	rm -f $(ROOTFSDIR)/etc/resolv.conf
+
 clean: uninstall
 
 include $(OPENWRT)/extra/bcm4717-rules.mk

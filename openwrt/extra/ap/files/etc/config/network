@@ -1,4 +1,5 @@
 # ---------------------------------
+# SWITCH PORTS:
 #
 #       port 0 : WAN (VLAN2) 
 #       port 1 : LAN (VLAN3) 
@@ -6,8 +7,8 @@
 #       port 3 : LAN (VLAN3)
 #       port 4 : STAS (VLAN4)
 #
-# eth0.2 : dchp
-# eth0.3 : 192.168.1.1
+# eth0.2 : dchp (masquerable IP)
+# eth0.3 : 192.168.1.1 (IP forwarding)
 # eth0.4 : 10.0.0.1
 #
 # ---------------------------------
@@ -17,7 +18,9 @@ config switch
         option reset '1'
         option enable_vlan '1'
 
+#-------------------
 #WAN
+#-------------------
 config switch_vlan
         option device 'eth0'
         option vlan '2'
@@ -28,7 +31,9 @@ config interface 'wan'
         option proto 'dhcp'
         option force_link '1'
 
+#-------------------
 #LAN
+#-------------------
 config switch_vlan
         option device 'eth0'
         option vlan '3'
@@ -39,9 +44,10 @@ config interface 'lan'
         option proto 'static'
         option ipaddr '192.168.1.1'
         option netmask '255.255.255.0'
-        option type 'bridge'
 
+#-------------------
 #SATS
+#-------------------
 config switch_vlan
         option device 'eth0'
         option vlan '4'
@@ -52,3 +58,8 @@ config interface 'stas'
         option proto 'static'
         option ipaddr '10.0.0.1'
         option netmask '255.0.0.0'
+	#need bridge to connect with PPP wireless 
+	option type 'bridge'
+
+
+

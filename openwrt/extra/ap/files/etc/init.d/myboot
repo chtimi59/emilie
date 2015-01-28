@@ -1,0 +1,16 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2010 OpenWrt.org
+START=99
+
+start() {
+        IF="br-stas"
+        N=`ifconfig | grep $IF`
+        while [[ -z "$N" ]]
+        do
+                #echo "wait $IF interface";
+                sleep 1s;
+                N=`ifconfig | grep $IF`
+        done
+        smcroute -d
+        smcroute -a eth0.3 192.168.1.6 225.0.0.37 br-stas
+}
