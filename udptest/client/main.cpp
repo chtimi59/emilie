@@ -15,6 +15,7 @@ int keytest(void);
 // config
 #define NETWORK_INTERFACE 0
 #define UDP_PORT 1234
+
 #define MULTICAST_ADDR inet_addr("225.0.0.37");
 
 // context
@@ -23,10 +24,33 @@ SOCKADDR_IN src_addr;
 char hostname[80];
 struct in_addr hostip = {0};
 
+#define MAXUDP_PAYLOADSZ 65527
 
+// FRAME HEADER = 8Bytes
+typedef struct {
+	unsigned short framenumber; // 2
+	unsigned char  version;     // 1
+	unsigned char  frametype;   // 1
+	unsigned long  address;     // 4
+	unsigned long  size;        // 4
+} upd_frame_header_t;
 
+#define TEST_FRAME_ID 1
+typedef struct {
+	unsigned char keycode;
+	unsigned char dummy[1024*10];
+} upd_test_frame_t;
 
-void ontime() {
+char* rxbuff = NULL;
+
+bool first = true;
+unsigned long old_framenumber;
+unsigned long stats_missing=0;
+unsigned long stats_received=0;
+unsigned long stats_total=0;
+unsigned long stats_total_bytes=0;
+
+int ontime() {
 
     fd_set fds;
     struct timeval timeout;
@@ -36,24 +60,58 @@ void ontime() {
     FD_ZERO(&fds);
     FD_SET(mysocket, &fds);
 
+	upd_frame_header_t* pheader = NULL;
+		
     int rc = select(sizeof(fds)* 8, &fds, NULL, NULL, &timeout);
     if (rc > 0)
     {
-        char rbuf[1024] = {0};
+		
         SOCKADDR_IN clientaddr;
         int len = sizeof(clientaddr);
-        if (recvfrom(mysocket, rbuf, 1024, 0, (sockaddr*)&clientaddr, &len) > 0) {
-            printf("received: %s\n", rbuf);
+		int recvbytes = recvfrom(mysocket, rxbuff, MAXUDP_PAYLOADSZ, 0, (sockaddr*)&clientaddr, &len);
+        if (recvbytes > sizeof(upd_frame_header_t)) {
+			pheader = (upd_frame_header_t*)rxbuff;
+
+			if (first) {
+				first=false;				
+			} else {
+				stats_missing += pheader->framenumber-old_framenumber-1;
+				stats_received++;
+				stats_total=stats_received+stats_missing;
+				stats_total_bytes += sizeof(upd_frame_header_t) + pheader->size;
+				printf("Rx: %u frame, %0.0fkB quality: %0.2f%%\r", pheader->framenumber, (float)(stats_total_bytes)/1024.0f, 100*(float)stats_received/(float)stats_total);
+			}
+			old_framenumber = pheader->framenumber;			
+			
+			switch(pheader->frametype) {
+					case TEST_FRAME_ID: {
+						if (recvbytes>=sizeof(upd_frame_header_t)+sizeof(upd_test_frame_t)) {
+							upd_test_frame_t* pfrm = (upd_test_frame_t*)(rxbuff+sizeof(upd_frame_header_t));
+							if (pfrm->keycode==0x0d) return 1;
+							if (pfrm->keycode) {
+								printf("\nKey pressed 0x%02X\n",pfrm->keycode);
+							}
+						break;
+					}
+				}
+			}
         }
     }
 
-
+	return 0;
 }
 
 
 
 int main(int argc, char** argv)
 {
+	// init rxbuffer
+	rxbuff = (char* )malloc(MAXUDP_PAYLOADSZ);
+	if (!rxbuff) {
+		fprintf(stderr, "out of memory");
+        return 1;
+    }
+
     // init WinSock 
     WORD w = MAKEWORD(1, 1);
     WSADATA wsadata;
@@ -97,7 +155,11 @@ int main(int argc, char** argv)
          #elif CAST == UNICAST
             fprintf(stderr, "UNICAST\n");
         #elif  CAST == MULTICAST
-            fprintf(stderr, "MULTICAST\n");
+			{
+				struct in_addr v;
+				v.S_un.S_addr = MULTICAST_ADDR
+				fprintf(stderr, "MULTICAST %s\n",inet_ntoa(v));
+			}
         #endif
     }
 
@@ -139,14 +201,14 @@ int main(int argc, char** argv)
          ::closesocket(mysocket);
         return 1;
     }
-
     
     while (!keytest()) {
-        Sleep(500);
-        ontime();
+        //Sleep(500);
+        if (ontime()) break;
     }
 
     ::closesocket(mysocket);
+	if (rxbuff) free(rxbuff);
     return 0;
 }
 
