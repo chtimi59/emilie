@@ -1,0 +1,138 @@
+--------------------------------------
+|
+|           W I R E L E S S
+|
+--------------------------------------
+
+#update aptitude package list
+sudo apt-get update
+
+#pakage install
+sudo apt-get install <pkname>
+
+
+--------------------------------------
+|
+|           W I R E L E S S
+|
+--------------------------------------
+
+# Show all interface
+sudo ifconfig -a
+
+# Interface down + change Mac adress
+sudo ifconfig wlan0 down hw ether 98:FC:11:3D:3C:DE
+
+# Wireless dedicated version of ifconfig
+sudo iwconfig
+
+# Connect ap to SSID
+sudo iwconfig wlan0 essid EMILIE
+
+
+# Interface IP
+ifconfig wlan0 up
+
+
+
+--------------------------------------
+|
+|           R O U T E
+|
+--------------------------------------
+
+# show route
+route
+
+# show multicast route
+ip mroute show
+
+# add route
+route add -net 224.0.0.0/4 eth0.4
+route del -net 224.0.0.0/4
+
+#show kernel iptables (netfilter/firewall)
+iptables --list
+
+#Make an interface Masquerable
+iptables --table nat --append POSTROUTING --out-interface eth0 -j MASQUERADE
+iptables --append FORWARD --in-interface eth1 -j ACCEPT
+echo 1 > /proc/sys/net/ipv4/ip_forward # enable ip forwaring in kernel
+service iptables restart
+
+#Route for multicast (using smcroute deamon)
+smcroute -a eth0.3 192.168.1.6 225.0.0.37 br-stas
+
+
+--------------------------------------
+|
+|           D H C P
+|
+--------------------------------------
+
+#ask DCHP server for an addess
+dhclient -4 -v wlan0
+
+#proper release a lease on DCHP server
+dhclient -4 -r wlan0
+
+#ping on a specific interface
+ping 10.0.0.1 -I wlan0
+
+
+
+
+--------------------------------------
+|
+|           D R I V E R
+|
+--------------------------------------
+
+#show usb bus
+lsusb
+
+#show pci bus
+lspci
+
+#show running kernel module
+lsmod
+
+
+#to activate a monitor interface (promiscous mode) on a wireless interface
+sudo airmon-ng start wlan0 channel
+sudo wireshark
+
+--------------------------------------
+|
+|           P R O C E S S
+|
+--------------------------------------
+#show all running process (= ls /proc/ )
+ps -x
+
+
+
+--------------------------------------
+|
+|           U N I X - F O L D E R S
+|
+--------------------------------------
+/dev -- devices
+/proc/ -- current running process
+/lib/ -- kernel modules to be runs or not
+/sys/ -- ? like /lib for ramfs ?
+
+/bin -- users binaries
+/sbin -- users binaries (root oriented)
+
+/etc -- configuration files
+/etc/rc.d/ -- booting deamon (S* for start and K* for kill) running by "init" process (procd)
+/etc/init.d/ -- real deamnon scripts sources (will be symlink in rc.d)
+/etc/networks/interface -- exemple of configuration files using during deamons init
+
+/usr
+/root
+/home
+/tmp - temporary folder
+
+/var ??

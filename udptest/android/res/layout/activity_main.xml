@@ -3,4 +3,62 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent" >
 
+    <LinearLayout
+        android:id="@+id/TopMenu"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true" >
+
+		<Spinner
+             android:id="@+id/spinner1"
+             android:layout_width="0dp"
+             android:layout_height="match_parent"
+             android:layout_weight="2" />       
+        
+         <CheckBox
+            android:id="@+id/CheckBox1"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:text="Lights"
+            android:layout_weight="1"  />
+         
+    </LinearLayout>
+
+     <TextView
+         android:id="@+id/textView1"
+         android:padding="5dp"
+         android:layout_margin="5dp"
+         android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+         android:layout_above="@+id/BottomMenu"
+         android:layout_below="@+id/TopMenu"
+         android:background="#222"
+         
+         android:text="24587 frames \n45648kB\nquality 100%"
+         android:textSize="30sp" />
+     
+    <LinearLayout
+        android:id="@+id/BottomMenu"
+        android:orientation="horizontal"
+        android:padding="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentBottom="true" >
+
+        <ToggleButton
+	        android:id="@+id/toggleButton1"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:text="ToggleButton" />
+        
+    </LinearLayout>
+
+   
+    
 </RelativeLayout>

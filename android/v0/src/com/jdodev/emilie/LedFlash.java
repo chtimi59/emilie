@@ -1,23 +1,72 @@
-package com.jdodev.emilie;
+package com.unity3d.plugins;
 
+import java.io.IOException;
+
+import android.annotation.TargetApi;
+import android.content.Context;
+import android.content.pm.PackageManager;
+import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.Parameters;
+import android.util.Log;
 
 public class LedFlash {
 	
-	Camera mCamera;
-	Parameters mCameraSetting;
+	Boolean mDeviceHasFlash;
+	Camera mCamera=null;
 	
-	public LedFlash() {
-		 mCamera = Camera.open();
-	     mCameraSetting = mCamera.getParameters();
+	Context mCtx;
+	
+	public Boolean IsAvailable() { return mDeviceHasFlash; }
+	
+	public LedFlash(Context ctx) {
+		mCtx = ctx;
+		mDeviceHasFlash = mCtx.getApplicationContext().getPackageManager().hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH); 
+		if (!mDeviceHasFlash) return;
+		if (!getCamera()) {
+			mDeviceHasFlash = false;
+			return;
+		}		 
+	}
+	
+	SurfaceTexture surface = null;
+	
+	@TargetApi(11)
+	private void api11setPreviewTexture(Camera camera) throws IOException {
+		surface = new SurfaceTexture(0);
+		camera.setPreviewTexture(surface);
+	}
+	
+	private boolean getCamera() {
+		
+		if (mCamera != null) return true; 
+		try {
+			mCamera = Camera.open();
+		} catch (RuntimeException e) {
+            Log.e("LEDFLASH", "Flash light error 1", e);
+            return false;
+        } 
+		
+    	try {
+    		api11setPreviewTexture(mCamera);
+    	} catch (IOException e) {
+   	 		Log.e("LEDFLASH", "Flash light error 2", e);
+   	 		return false;
+		}
+            	
+    	return true;
 	}
 	
 	public void release() {
-		mCameraSetting.setFlashMode(Parameters.FLASH_MODE_OFF);
-   	 	mCamera.setParameters(mCameraSetting);
-   	 	mCamera.stopPreview();
-	    mCamera = null; //Camera..open();
+		if (mCamera != null) {
+			Parameters p;
+			p = mCamera.getParameters();
+			p.setFlashMode(Parameters.FLASH_MODE_OFF);
+	   	 	mCamera.setParameters(p);
+	   	 	mCamera.stopPreview();
+	   	 	mCamera.release();
+		    mCamera = null; //Camera..open();
+		}
 	}
 	
 	
@@ -27,18 +76,23 @@ public class LedFlash {
 	}
 	
 	public void setLedStatus(Boolean status) {
+		if (mCamera==null) return;
 		if (mLedStatus == status) return;
 		mLedStatus = status;
-		if (mLedStatus) {
-    		mCameraSetting.setFlashMode(Parameters.FLASH_MODE_TORCH);
-    		mCamera.setParameters(mCameraSetting);
-    		//mCamera.startPreview();
-    	} else {
-    		mCameraSetting.setFlashMode(Parameters.FLASH_MODE_OFF);
-	    	mCamera.setParameters(mCameraSetting);
-	    	//mCamera.stopPreview();
-    	}
+		Parameters p;
+		try {
+			if (mLedStatus) {
+				p = mCamera.getParameters();
+	    		p.setFlashMode(Parameters.FLASH_MODE_TORCH);
+	    		mCamera.setParameters(p);
+	    		mCamera.startPreview();
+	    	} else {
+	    		p = mCamera.getParameters();
+	    		p.setFlashMode(Parameters.FLASH_MODE_OFF);
+		    	mCamera.setParameters(p);
+		    	mCamera.stopPreview();		    	
+	    	}
+		} catch (Exception e) { }
     }
-	
 	
 }
