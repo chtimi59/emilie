@@ -171,7 +171,7 @@ int main(int argc, char** argv)
     
     pheader->framenumber = 0;
     pheader->version = 100;
-    pheader->address = 0; // all
+    pheader->address = 0xFFFFFFFF; // all
     pheader->frametype = TEST_FRAME_ID;
     pheader->size = sizeof(udp_test_frame_t);
 
@@ -182,7 +182,7 @@ int main(int argc, char** argv)
     while (1)
     {
         
-        Sleep(100);
+        Sleep(10);
 
         CHAR ch = keytest();
         if (ch) printf("\nPress on 0x%02X\n",ch);
@@ -191,8 +191,11 @@ int main(int argc, char** argv)
         ptestFrame->keycode=ch;
 
         float elapsed = (float)(milliseconds_now() - start)/1000;
-        float totaldata = (float)(pheader->framenumber*udp_packet_sz)/1024.0f;
-        printf("Tx: %u frames, %0.0fkB (%0.2fkB/s)\r", pheader->framenumber,  totaldata, totaldata / elapsed);
+		float totaldata = (float)(pheader->framenumber*udp_packet_sz) / 1024.0f / 1024.0f;
+		
+		if (pheader->framenumber % 1 == 0) {
+			printf("Tx: %u frames, %0.0fMB (%0.2fMbits/s)\r", pheader->framenumber, totaldata, 8*totaldata / elapsed);
+		}
 
         int ret = sendto(mysocket, buffer, udp_packet_sz, 0, (sockaddr*)&dest_addr, sizeof(SOCKADDR_IN));
         if (ret != udp_packet_sz) {

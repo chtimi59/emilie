@@ -29,11 +29,11 @@ sudo iwconfig
 # Connect ap to SSID
 sudo iwconfig wlan0 essid EMILIE
 
-
 # Interface IP
 ifconfig wlan0 up
 
-
+#cfg80211 tools : list of stations
+iw wlan0 station dump
 
 --------------------------------------
 |

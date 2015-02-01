@@ -10,14 +10,25 @@ import android.util.Log;
 public class UDPFrame {
 	
 	public class TESTFrame {
-		public long keycode;					
+		public final static int ID=1;
+		public int keycode;					
 		public byte[] dummy;
+		
+		public TESTFrame parseb(ByteBuffer b) {
+			keycode = byte_signed2unsigned(b.get());
+			if (dummy == null) dummy = new byte[1024*10];
+			b.get(dummy, 0, 1024*10);
+			return this;
+		}
 	}
 	
 	public static int  byte_signed2unsigned(byte x)    { return x & 0xFF; }	
 	public static int  short_signed2unsigned(short x)  { return x & 0xFFFF; }
-	public static long int_signed2unsigned(int x)     { return x & 0xFFFFFFFF; }
+	public static long int_signed2unsigned(int x)      { return x & 0xFFFFFFFFl; }
 
+	private boolean mIsCorrupted = false;
+	private boolean mIsMisPlaced = false;
+	public boolean isValid() { return (!mIsCorrupted) && (!mIsMisPlaced); }
 	
 	// read header (8bytes)
 	public int framenumber;
@@ -40,46 +51,77 @@ public class UDPFrame {
 			address 	 = int_signed2unsigned(b.getInt());					
 			size 	 	 = int_signed2unsigned(b.getInt());
 		
-			switch(frametype) {
-				case 1: // TEST_FRAME_ID
+			switch(frametype)
+			{
+				case TESTFrame.ID:
 					TESTFrame tstfrm = new TESTFrame();
-					tstfrm.keycode = byte_signed2unsigned(b.get());
-					b.get(tstfrm.dummy, 0, 1024*10);
-					payload = tstfrm; 
+					payload = tstfrm.parseb(b);
 					break;
 			}
-			
+
 			return true;
 			
 		} catch(BufferUnderflowException e) {
-			Log.e("ERR",e.toString());
+			Log.e(UDPClient.TAG, e.toString());
+			mIsCorrupted = true;
+			received_corrupted++;
 			return false;
 		}		
 	}
 
 	
 	
-	long stats_missing = 0;
-	long stats_received = 0;
-	long stats_total = 0;
-	long stats_total_bytes = 0;
+	static long received = 0;
+	static long missing = 0;
+	// total = received + missing 
+
+	static long received_ok = 0;
+	static long received_corrupted = 0;
+	static long received_misplaced = 0;
+	// received = received_ok + received_corrupted + received_misplaced
+	
+	// following value are not reseted on rollover
+	static long stats_total_inbytes = 0;
+	static long stats_total_received = 0;
+	
+	public static void ClearStats() {
+		ClearStatsRollover();
+		stats_total_inbytes = 0;
+		stats_total_received = 0;
+	}
+	public static void ClearStatsRollover() {
+		received = 0;
+		missing = 0;
+		received_ok = 0;
+		received_corrupted = 0;
+		received_misplaced = 0;
+	}
 	
 	public void computestats(long old_framenumber) {
-		stats_missing += framenumber-old_framenumber-1;
-		stats_received++;
-		stats_total=stats_received+stats_missing;
-		stats_total_bytes += size + 8;
+		if (framenumber<=old_framenumber) mIsMisPlaced = true;
 		
+		received++;
+		missing += framenumber-old_framenumber-1;
+		
+		if (mIsMisPlaced) received_misplaced++;
+		//if (mIsCorrupted) received_corrupted++;
+		if (isValid()) received_ok++;
+		
+		stats_total_inbytes += size + 8;
+		stats_total_received++;
 	}
+
 	
 	public String toString() {
 		
 		String text = 
-			"frame No ["+framenumber + "]\n" +
-			"" + String.format("%.02f", (float)(stats_total_bytes/1024)) + "kB\n" +
-			"Quality " + String.format("%.02f", 100*(float)(stats_received)/(float)(stats_total)) + "%\n" +
-			"received: " + stats_received + "\n" +
-			"missing: " + stats_missing + "\n";
+			"frame ["+framenumber + "]\n" +
+			"" + String.format("%.02f", (float)(stats_total_inbytes)/1024.0f/1024.0f) + "MB\n" +
+			"Quality " + String.format("%.02f", 100*(float)(received_ok)/(float)(received+missing)) + "%\n" +
+			"correct: "   + received_ok + "\n" +
+			"missing: "   + missing + "\n" +
+			"corrupted: " + received_corrupted + "\n" +
+			"misplaced: " + received_misplaced + "\n";
 		
 		switch(frametype) {
 			case 1: // TEST_FRAME_ID
@@ -92,4 +134,7 @@ public class UDPFrame {
 		
 		return text;
 	}
+	
+	
+
 }

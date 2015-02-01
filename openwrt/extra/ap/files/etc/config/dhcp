@@ -19,6 +19,7 @@ config dnsmasq
 	#list interface		br-lan
 	#list notinterface	lo
 	#list bogusnxdomain     '64.94.110.11'
+	option noping '1'
 
 config dhcp lan
 	option interface	lan

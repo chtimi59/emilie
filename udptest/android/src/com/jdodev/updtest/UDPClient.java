@@ -4,20 +4,19 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.wifi.WifiManager;
-import android.os.Handler;
-import android.os.PowerManager;
 import android.util.Log;
 
 
 public class UDPClient extends Thread
-{ 
-	private final static int UDP_PORT = 1234;
-	private final static String MULTICAST_ADDR = "225.0.0.37";
+{
+	public final static String TAG = "UDPCLIENT";
+	
+	public final static int UDP_PORT = 1234;
+	public final static String MULTICAST_ADDR = "225.0.0.37";
 	private final static int MAXUDP_PAYLOADSZ = 65527;
 	
 	public interface Listener {
@@ -26,13 +25,15 @@ public class UDPClient extends Thread
 		public void OnThreadEnd();
 	}
 	
+	private Activity mCtx = null;
 	private Listener mListener = null;
 	private WifiManager.WifiLock mLock1 = null;
 	private WifiManager.MulticastLock mLock2 = null;
 	
 	private volatile boolean done = false;
 	
-	public UDPClient(Context ctx, Listener listener) {
+	public UDPClient(Activity ctx, Listener listener) {
+		mCtx = ctx;
 		mListener = listener;
 		
 		WifiManager wifi = (WifiManager)ctx.getSystemService(Context.WIFI_SERVICE);
@@ -45,11 +46,10 @@ public class UDPClient extends Thread
         mLock2=wifi.createMulticastLock("mylock2");
         if (mLock2==null) { end(); return; }
         mLock2.acquire();
-        
-        done = false;
+       	done = false;
 	}
 		
-	synchronized public void shutdown() {
+	public void shutdown() {
 	    done = true;
 	}
 	
@@ -58,17 +58,19 @@ public class UDPClient extends Thread
 		mLock1 = null;
 		if (mLock2!=null) mLock2.release();
 		mLock2 = null;
-		if (mListener!=null) {
-			synchronized(mListener) {
-				mListener.OnThreadEnd();
-			}
-		}
+		if (mListener!=null) mCtx.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+			mListener.OnThreadEnd();
+		} });
+		
+		Log.i(TAG,"Rx Thread end");
 	}
 	
 	
 	@Override 
 	public synchronized void run() { 
-
+		Log.i(TAG,"Rx Thread start");
 		MulticastSocket socket = null;
 		DatagramPacket packet = null;
 		
@@ -76,42 +78,55 @@ public class UDPClient extends Thread
 		try {
 			socket = new MulticastSocket(UDP_PORT);
 			socket.joinGroup(InetAddress.getByName(MULTICAST_ADDR));
-			socket.setSoTimeout(10000);
+			socket.setSoTimeout(3000);
 			packet = new DatagramPacket( new byte[MAXUDP_PAYLOADSZ], MAXUDP_PAYLOADSZ);
 		} catch (IOException e) {
 			e.printStackTrace();
-			Log.e("ERR",e.toString());
+			Log.e(TAG,e.toString());
 			end(); 
 		}
 		
-
+		if (mListener!=null) mCtx.runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+			mListener.OnThreadStart();
+		} });
+		
 		// read
 		boolean first = true;
 		long old_framenumber = 0;
-				
+		UDPFrame.ClearStats();
 		while (!done) {
 			try {
 		           
 				socket.receive(packet);
-				UDPFrame frame = new UDPFrame();
+				final UDPFrame frame = new UDPFrame();
 				if (frame.parse(packet)) {
 					
 					if (first) { 
 						first = false;
+						old_framenumber = frame.framenumber;
 					} else {
-						frame.computestats(old_framenumber);
-					}
-					old_framenumber = frame.framenumber;
-					
-					if (mListener!=null) {
-						synchronized(mListener) {
-							mListener.OnDataReceived(frame);
+						if (old_framenumber - frame.framenumber > (65535/2)) {
+							Log.d(TAG,"frame number rollover "+old_framenumber+" "+frame.framenumber);
+							first = true;
+							old_framenumber = 0;
+							UDPFrame.ClearStatsRollover();							
+						} else {
+							frame.computestats(old_framenumber);
+							if (frame.isValid()) old_framenumber = frame.framenumber;
 						}
 					}
+					
+					if (frame.isValid() && mListener!=null) mCtx.runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							mListener.OnDataReceived(frame);
+					} });					
 				}
 				
 			} catch (IOException e) {
-				Log.e("ERR",e.toString());
+				Log.e(TAG,e.toString());
 			}
 		}
 		
@@ -120,6 +135,7 @@ public class UDPClient extends Thread
 		socket.close();
 		socket = null;
 		packet = null;
+		Log.i(TAG,"Rx Thread proper end");
 		end(); 		
 	} 
 }
