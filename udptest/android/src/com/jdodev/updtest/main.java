@@ -127,7 +127,7 @@ public class main extends Activity implements UDPClient.Listener {
 				UDPFrame.TESTFrame tstfrm = (UDPFrame.TESTFrame)frame.payload;
 				switch (tstfrm.keycode) {
 					case 0x0d:
-						udpstop();
+						//udpstop();
 						break;
 					case 0x32:
 						if ( mLightCheckBoxView.isChecked() && 

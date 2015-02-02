@@ -10,13 +10,13 @@ int keytest(void);
 #define BROADCAST 3
 
 //choose the mode
-#define CAST 2
+#define CAST 1
 
 // config
 #define NETWORK_INTERFACE 0
 #define UDP_PORT 1234
 //#define UNICAST_ADDR   inet_addr("172.16.50.197");
-#define UNICAST_ADDR   inet_addr("10.0.229.220");
+#define UNICAST_ADDR   inet_addr("10.0.104.122");
 #define MULTICAST_ADDR inet_addr("225.0.0.37");
 #define MULTICAST_TTL  32;
 #define BROADCAST_ADDR inet_addr("172.16.32.255");
