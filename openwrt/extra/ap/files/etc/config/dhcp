@@ -37,3 +37,23 @@ config dhcp stas
 	option limit	60000
 	option leasetime	12h
 
+#config odhcpd 'odhcpd'
+#        option maindhcp '0'
+#        option leasefile '/tmp/hosts/odhcpd'
+#        option leasetrigger '/usr/sbin/odhcpd-update'
+
+	
+config host
+        option ip       '192.168.1.5'
+        option mac      'a4:5d:36:71:11:0e'
+        option name     'mypc'
+
+config host
+        option ip       '192.168.1.6'
+        option mac      '5c:f9:dd:6c:c2:22'
+        option name     'innobec_pc'
+
+config host
+        option ip       '192.168.1.7'
+        option mac      'b8:27:eb:79:4d:aa'
+        option name     'innobecpc'
