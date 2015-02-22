@@ -2,6 +2,17 @@
 #define DRIVER_NL80211_CAPA_H
 
 
+
+struct wowlan_triggers {
+	u8 any;
+	u8 disconnect;
+	u8 magic_pkt;
+	u8 gtk_rekey_failure;
+	u8 eap_identity_req;
+	u8 four_way_handshake;
+	u8 rfkill_release;
+};
+
 /**
 * struct wpa_driver_capa - Driver capability information
 */
@@ -237,6 +248,6 @@ struct wiphy_info_data {
 	unsigned int mac_addr_rand_sched_scan_supported : 1;
 };
 
-int nl80211_get_capa(struct nl80211_data *, struct wiphy_info_data*);
+int nl80211_get_capa(struct nl80211_data *drv, struct wiphy_info_data *info);
 
 #endif

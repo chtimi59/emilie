@@ -12,10 +12,8 @@
 #include "driver_nl80211.h"
 #include "netlink.h"
 #include "nl80211.h"
-#if 0
+
 #include "driver_nl80211_capa.h"
-
-
 
 static int protocol_feature_handler(struct nl_msg *msg, void *arg)
 {
@@ -30,7 +28,6 @@ static int protocol_feature_handler(struct nl_msg *msg, void *arg)
 
 	return NL_SKIP;
 }
-
 
 static u32 get_nl80211_protocol_features(struct nl80211_data *drv)
 {
@@ -55,8 +52,6 @@ static u32 get_nl80211_protocol_features(struct nl80211_data *drv)
 
 
 
-
-
 static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 {
 	struct nlattr *tb[NL80211_ATTR_MAX + 1];
@@ -66,8 +61,9 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 
 	struct wiphy_info_data *info = arg;
 	
-	if (tb[NL80211_ATTR_WIPHY_NAME])
+	if (tb[NL80211_ATTR_WIPHY_NAME]) {
 		strlcpy(info->phyname, nla_get_string(tb[NL80211_ATTR_WIPHY_NAME]), sizeof(info->phyname));
+	}
 
 
 	#if 0
@@ -198,22 +194,20 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 
 
 
-
  
 int nl80211_get_capa(struct nl80211_data *drv, struct wiphy_info_data *info)
 {
-
 	u32 feat;
-	struct nl_msg *msg;
 	int flags = 0;
+	feat = get_nl80211_protocol_features(drv);
+	if (feat & NL80211_PROTOCOL_FEATURE_SPLIT_WIPHY_DUMP) {
+		flags = NLM_F_DUMP;
+	} 		
 
 	memset(info, 0, sizeof(*info));
 
-	feat = get_nl80211_protocol_features(drv);
-	if (feat & NL80211_PROTOCOL_FEATURE_SPLIT_WIPHY_DUMP)
-		flags = NLM_F_DUMP;
-
-	msg = nl80211_cmd_msg(drv, flags, NL80211_CMD_GET_WIPHY);
+	/* CREATE A NETLINK MESSAGE */
+	struct nl_msg *msg = nl80211_cmd_msg(drv, flags, NL80211_CMD_GET_WIPHY);
 	if (!msg || nla_put_flag(msg, NL80211_ATTR_SPLIT_WIPHY_DUMP)) {
 		nlmsg_free(msg);
 		return -1;
@@ -225,4 +219,3 @@ int nl80211_get_capa(struct nl80211_data *drv, struct wiphy_info_data *info)
 	return 0;
 }
 
-#endif

@@ -50,6 +50,9 @@ struct nl80211_data * driver_nl80211_init(struct nl80211_config *cfg)
 	
 	ctx->cfg = cfg;
 
+	ctx->ifindex  = if_nametoindex(cfg->ifname);
+	fprintf(stderr, "nl80211: '%s' index: %d\n", cfg->ifname, ctx->ifindex);
+
 	ctx->nl_cb = nl_cb_alloc(NL_CB_DEFAULT);
 	if (ctx->nl_cb == NULL) {
 		fprintf(stderr,  "nl80211: Failed to allocate netlink callbacks\n");
@@ -65,7 +68,7 @@ struct nl80211_data * driver_nl80211_init(struct nl80211_config *cfg)
 		fprintf(stderr,  "nl80211: 'nl80211' generic netlink not found\n");
 		goto err;
 	} else {
-		fprintf(stderr, "nl80211: 'nl80211' familly found %d\n", ctx->nl80211_id);
+		fprintf(stderr, "nl80211: 'nl80211' familly found at %d\n", ctx->nl80211_id);
 	}
 
 	ctx->nl_event = nl_create_handle(ctx->nl_cb, "event");

@@ -104,6 +104,10 @@ out:
 	return err;
 }
 
+
+void * nl80211_cmd(struct nl80211_data *ctx, struct nl_msg *msg, int flags, uint8_t cmd) {
+	return genlmsg_put(msg, 0, 0, ctx->nl80211_id, 0, flags, cmd, 0);
+}
 int send_and_recv_msgs(struct nl80211_data *ctx, struct nl_msg *msg, int(*valid_handler)(struct nl_msg *, void *), void *valid_data) {
 	return send_and_recv(ctx, ctx->nl, msg, valid_handler, valid_data);
 }
@@ -112,34 +116,29 @@ int send_and_recv_msgs(struct nl80211_data *ctx, struct nl_msg *msg, int(*valid_
 
 
 
-void * nl80211_cmd(struct nl80211_data *ctx, struct nl_msg *msg, int flags, uint8_t cmd) {
-	return genlmsg_put(msg, 0, 0, ctx->nl80211_id, 0, flags, cmd, 0);
-}
 
-/*int nl80211_set_iface_id(struct nl_msg *msg, struct i802_bss *bss)
-{
-	if (bss->wdev_id_set)
-		return nla_put_u64(msg, NL80211_ATTR_WDEV, bss->wdev_id);
-	return nla_put_u32(msg, NL80211_ATTR_IFINDEX, bss->ifindex);
-}*/
+
+
+
 
 struct nl_msg * nl80211_cmd_msg(struct nl80211_data *ctx, int flags, uint8_t cmd)
 {
 	struct nl_msg *msg;
 
 	msg = nlmsg_alloc();
-	if (!msg)
+	if (!msg) {
 		return NULL;
+	}
 
 	if (!nl80211_cmd(ctx, msg, flags, cmd)) {
 		nlmsg_free(msg);
 		return NULL;
 	}
 
-	/*if (nl80211_set_iface_id(msg, bss) < 0) {
+	if (nla_put_u32(msg, NL80211_ATTR_IFINDEX, ctx->ifindex)) {
 		nlmsg_free(msg);
 		return NULL;
-	}*/
+	}
 
 	return msg;
 }
