@@ -29,7 +29,7 @@ int linux_iface_up(int sock, const char *ifname)
 
 	if (ioctl(sock, SIOCGIFFLAGS, &ifr) != 0) {
 		ret = errno ? -errno : -999;
-		fprintf(stderr, "Could not read interface %s flags: %s", ifname, strerror(errno));
+		fprintf(stderr, "Could not read interface %s flags: %s\n", ifname, strerror(errno));
 		return ret;
 	}
 

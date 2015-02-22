@@ -104,11 +104,11 @@ void nl80211_register_eloop_read(struct nl_handle **handle, eloop_sock_handler h
 
 	nl_socket_set_nonblocking(*handle);
 	eloop_register_read_sock(nl_socket_get_fd(*handle), handler, eloop_data, *handle);
-	*handle = (void *)(((intptr_t)*handle) ^ ELOOP_SOCKET_INVALID);
+	//*handle = (void *)(((intptr_t)*handle) ^ ELOOP_SOCKET_INVALID); ??????
 }
 
 void nl80211_destroy_eloop_handle(struct nl_handle **handle) {
-	*handle = (void *)(((intptr_t)*handle) ^ ELOOP_SOCKET_INVALID);
+	//*handle = (void *)(((intptr_t)*handle) ^ ELOOP_SOCKET_INVALID); ??????
 	eloop_unregister_read_sock(nl_socket_get_fd(*handle));
 	nl_destroy_handles(handle);
 }

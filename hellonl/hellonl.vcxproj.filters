@@ -1,0 +1,86 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Fichiers d%27en-tête">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="rfkill">
+      <UniqueIdentifier>{24c090b2-5586-4eea-a3a2-d142f83e0852}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="eloop">
+      <UniqueIdentifier>{86c4a3c9-39ac-456c-9b49-d4778f5d8e24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{57d15487-aed9-4f1d-9536-1ea7c26d3bfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ioctl">
+      <UniqueIdentifier>{c74447d8-a8a8-41a1-aa95-e9a29224e66b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink">
+      <UniqueIdentifier>{01829868-c4d8-4413-b946-10ac7e54b838}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="common.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="eloop.c">
+      <Filter>eloop</Filter>
+    </ClCompile>
+    <ClCompile Include="ioctl.c">
+      <Filter>ioctl</Filter>
+    </ClCompile>
+    <ClCompile Include="netlink.c">
+      <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_capa.c">
+      <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_helper.cxx">
+      <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211.c">
+      <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="rfkill.c">
+      <Filter>rfkill</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c" />
+    <ClCompile Include="driver_nl80211_cmd.c">
+      <Filter>netlink</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="eloop.h">
+      <Filter>eloop</Filter>
+    </ClInclude>
+    <ClInclude Include="list.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="nl80211.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ioctl.h">
+      <Filter>ioctl</Filter>
+    </ClInclude>
+    <ClInclude Include="netlink.h">
+      <Filter>netlink</Filter>
+    </ClInclude>
+    <ClInclude Include="priv_netlink.h">
+      <Filter>netlink</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211.h">
+      <Filter>netlink</Filter>
+    </ClInclude>
+    <ClInclude Include="rfkill.h">
+      <Filter>rfkill</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
+  </ItemGroup>
+</Project>

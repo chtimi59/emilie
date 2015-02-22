@@ -7,6 +7,7 @@ OBJS =  main.o
 OBJS +=  rfkill.o 
 OBJS +=  netlink.o
 OBJS +=  driver_nl80211.o
+OBJS +=  driver_nl80211_cmd.o
 OBJS +=  driver_nl80211_capa.o
 OBJS +=  ioctl.o
 OBJS +=  common.o 
