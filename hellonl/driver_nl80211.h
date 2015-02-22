@@ -30,6 +30,7 @@ void * nl80211_cmd(struct nl80211_data *ctx, struct nl_msg *msg, int flags, uint
 int send_and_recv_msgs(struct nl80211_data *ctx, struct nl_msg *msg, int(*valid_handler)(struct nl_msg *, void *), void *valid_data);
 
 
+void set_rts_threshold(struct netlink_data *drv, int rts);
 
 
 

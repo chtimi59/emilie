@@ -1,5 +1,6 @@
 *.o
 *.sdf
+*.suo
 hellonl
 
-/*.suo
+/*.opensdf

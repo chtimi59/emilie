@@ -20,6 +20,12 @@
     <Filter Include="netlink">
       <UniqueIdentifier>{01829868-c4d8-4413-b946-10ac7e54b838}</UniqueIdentifier>
     </Filter>
+    <Filter Include="netlink\capa">
+      <UniqueIdentifier>{edf621e5-d8fb-437b-bd41-b151da554678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\rts">
+      <UniqueIdentifier>{11f5fae4-2030-440b-b2c8-df09dbda58c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common.c">
@@ -34,9 +40,6 @@
     <ClCompile Include="netlink.c">
       <Filter>netlink</Filter>
     </ClCompile>
-    <ClCompile Include="driver_nl80211_capa.c">
-      <Filter>netlink</Filter>
-    </ClCompile>
     <ClCompile Include="driver_helper.cxx">
       <Filter>netlink</Filter>
     </ClCompile>
@@ -49,6 +52,12 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="driver_nl80211_cmd.c">
       <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_capa.c">
+      <Filter>netlink\capa</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_rts.c">
+      <Filter>netlink\rts</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +87,12 @@
     </ClInclude>
     <ClInclude Include="rfkill.h">
       <Filter>rfkill</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_capa.h">
+      <Filter>netlink\capa</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_rts.h">
+      <Filter>netlink\rts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -15,53 +15,11 @@
 #include "driver_nl80211.h"
 #include "ioctl.h"
 
+#include "driver_nl80211_rts.h"
+//#include "driver_nl80211_capa.h"
 
 
 
-void set_rts_threshold(struct netlink_data *drv, int rts)
-{
-	/* wireless driver id */
-	int phyidx = 0; // see here /sys/class/ieee80211/%s/index
-
-	/**
-	Documentation Overview - libnl Suite
-	http://www.infradead.org/~tgr/libnl/doc/
-	*/
-
-	/* CREATE A NETLINK MESSAGE */
-	struct nl_msg *msg;
-
-	msg = nlmsg_alloc();
-	if (!msg) {
-		fprintf(stderr, "set_rts_threshold: memory error\n");
-		return;
-	}
-
-	if (!nl80211_cmd(drv, msg, 0, NL80211_CMD_SET_WIPHY)) {
-		fprintf(stderr, "set_rts_threshold: command error \n");
-		nlmsg_free(msg);
-		return;
-	}
-
-	if (nla_put_u32(msg, NL80211_ATTR_WIPHY, phyidx)) {
-		fprintf(stderr, "set_rts_threshold: command attribute error\n");
-		nlmsg_free(msg);
-		return;
-	}
-
-	if (nla_put_u32(msg, NL80211_ATTR_WIPHY_RTS_THRESHOLD, rts)) {
-		fprintf(stderr, "set_rts_threshold: command attribute error\n");
-		nlmsg_free(msg);
-		return;
-	}
-
-	if (send_and_recv_msgs(drv, msg, NULL, NULL)) {
-		fprintf(stderr, "set_rts_threshold: send error (privilege?)\n");
-		return;
-	}
-
-	return;
-}
 
 void OnProperClose(int sig, void *signal_ctx) {
 	fprintf(stderr, "CTRL-C hit !\n");
@@ -141,8 +99,10 @@ int main(int argc, char **argv)
 
 
 	// TEST
-	set_rts_threshold(nl80211_data, 82);
-
+	set_nl80211_rts_threshold(nl80211_data, 85);
+	int v = 0;
+	get_nl80211_rts_threshold(nl80211_data, &v);
+	fprintf(stderr, "RTS %d\n",v);
 
 	// -------- SCHEDULER -----------
 	eloop_run();
