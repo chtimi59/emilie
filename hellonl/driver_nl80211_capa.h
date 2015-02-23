@@ -248,6 +248,6 @@ struct wiphy_info_data {
 	unsigned int mac_addr_rand_sched_scan_supported : 1;
 };
 
-int nl80211_get_capa(struct nl80211_data *drv, struct wiphy_info_data *info);
+int nl80211_feed_capa(struct nl80211_data *drv);
 
 #endif

@@ -44,7 +44,7 @@ struct nl80211_data * driver_nl80211_init(struct nl80211_config *cfg)
 {
 	struct nl80211_data *ctx;
 
-	ctx = zalloc(sizeof(*ctx));
+	ctx = zalloc(sizeof(struct nl80211_data));
 	if (ctx == NULL)
 		return NULL;
 	
@@ -107,6 +107,8 @@ void driver_nl80211_deinit(struct nl80211_data *ctx)
 	if (ctx == NULL)
 		return;
 	
+	if (ctx->phy_info) free(ctx->phy_info);
+	//if (ctx->macaddr)  free(ctx->macaddr);
 	if (ctx->nl_event) nl_destroy_handles(&ctx->nl_event);
 	if (ctx->nl) nl_destroy_handles(&ctx->nl);
 	nl_cb_put(ctx->nl_cb);

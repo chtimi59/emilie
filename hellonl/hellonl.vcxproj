@@ -69,6 +69,7 @@
     <ClCompile Include="driver_nl80211.c" />
     <ClCompile Include="driver_nl80211_capa.c" />
     <ClCompile Include="driver_nl80211_cmd.c" />
+    <ClCompile Include="driver_nl80211_interface.c" />
     <ClCompile Include="driver_nl80211_rts.c" />
     <ClCompile Include="eloop.c" />
     <ClCompile Include="ioctl.c" />
@@ -80,6 +81,7 @@
     <ClInclude Include="common.h" />
     <ClInclude Include="driver_nl80211.h" />
     <ClInclude Include="driver_nl80211_capa.h" />
+    <ClInclude Include="driver_nl80211_interface.h" />
     <ClInclude Include="driver_nl80211_rts.h" />
     <ClInclude Include="eloop.h" />
     <ClInclude Include="ioctl.h" />

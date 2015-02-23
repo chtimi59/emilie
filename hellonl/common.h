@@ -51,6 +51,9 @@ static inline void realtime_sub(struct realtime *a, struct realtime *b, struct r
 
 
 // --- NETWORK ---
+#ifndef ETH_ALEN
+#define ETH_ALEN 6
+#endif
 #ifndef IFNAMSIZ
 #define IFNAMSIZ 16
 #endif

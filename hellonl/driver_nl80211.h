@@ -1,6 +1,8 @@
 #ifndef DRIVER_NL80211_H
 #define DRIVER_NL80211_H
 
+#include "nl80211.h"
+
 #ifdef CONFIG_LIBNL20
 /* libnl 2.0 compatibility code */
 #define nl_handle nl_sock
@@ -8,14 +10,21 @@
 #define nl80211_handle_destroy nl_socket_free
 #endif /* CONFIG_LIBNL20 */
 
-
 struct nl80211_data {
 	struct nl80211_config *cfg;
+	
 	struct nl_cb *nl_cb;
 	struct nl_handle *nl;
 	struct nl_handle *nl_event;
-	int ifindex;
-	int nl80211_id;
+	
+	int nl80211_id;		// netlink familly
+	int ifindex;		// interface index (ex: wlan0)
+	int phyindex;		// phy index (ex: phy0)
+	
+	struct wiphy_info_data* phy_info; // info from get_capa()
+	u8 macaddr[ETH_ALEN];			  // mac address
+	enum nl80211_iftype mode;		  // should be AP mode
+
 };
 
 struct nl80211_config {

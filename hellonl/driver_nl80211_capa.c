@@ -195,8 +195,17 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 
 
  
-int nl80211_get_capa(struct nl80211_data *drv, struct wiphy_info_data *info)
+int nl80211_feed_capa(struct nl80211_data *drv)
 {
+
+	struct wiphy_info_data *info = NULL;
+	info = zalloc(sizeof(struct wiphy_info_data));
+	if (info == NULL)
+		return NULL;
+
+	drv->phy_info = info;
+
+
 	u32 feat;
 	int flags = 0;
 	feat = get_nl80211_protocol_features(drv);
@@ -215,6 +224,7 @@ int nl80211_get_capa(struct nl80211_data *drv, struct wiphy_info_data *info)
 
 	if (send_and_recv_msgs(drv, msg, wiphy_info_handler, info))
 		return -1;
+
 
 	return 0;
 }

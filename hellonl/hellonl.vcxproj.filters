@@ -26,6 +26,9 @@
     <Filter Include="netlink\rts">
       <UniqueIdentifier>{11f5fae4-2030-440b-b2c8-df09dbda58c9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="netlink\interfacce">
+      <UniqueIdentifier>{103f58b6-7d26-4277-8f59-57611b53231d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common.c">
@@ -58,6 +61,9 @@
     </ClCompile>
     <ClCompile Include="driver_nl80211_rts.c">
       <Filter>netlink\rts</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_interface.c">
+      <Filter>netlink\interfacce</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -93,6 +99,9 @@
     </ClInclude>
     <ClInclude Include="driver_nl80211_rts.h">
       <Filter>netlink\rts</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_interface.h">
+      <Filter>netlink\interfacce</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
