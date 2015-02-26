@@ -17,10 +17,13 @@ struct nl80211_data {
 	struct nl_handle *nl;
 	struct nl_handle *nl_event;
 	
-	int nl80211_id;		// netlink familly
-	int ifindex;		// interface index (ex: wlan0)
-	int phyindex;		// phy index (ex: phy0)
+	int nl80211_id;		   // netlink familly
+	int ifindex;		   // interface index (ex: wlan0)
+	int phyindex;		   // phy index (ex: phy0)
 	
+	char brname[IFNAMSIZ]; // bridge name (ex: eth0)
+	int  br_ifindex;	   // bridge index
+
 	struct wiphy_info_data* phy_info; // info from get_capa()
 	u8 macaddr[ETH_ALEN];			  // mac address
 	enum nl80211_iftype mode;		  // should be AP mode

@@ -63,6 +63,7 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 	
 	if (tb[NL80211_ATTR_WIPHY_NAME]) {
 		strlcpy(info->phyname, nla_get_string(tb[NL80211_ATTR_WIPHY_NAME]), sizeof(info->phyname));
+		//fprintf(stderr, "%s\n", info->phyname);
 	}
 
 

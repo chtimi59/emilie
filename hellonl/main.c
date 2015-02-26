@@ -94,8 +94,8 @@ int main(int argc, char **argv)
 		EXIT_ERROR("nl80211: could'nt find phy mode\n");	
 	if (nl80211_data->mode != NL80211_IFTYPE_AP)
 	{
-		// To change mode we first need to set interface down (if it was not the case)
-		if ( (linux_iface_up(ioctl_socket, nl80211_cfg.ifname) == 1) && (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false) != 0) )
+		// To change mode we first need to set interface down
+		if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false))
 			EXIT_ERROR("error: could'nt set interface down\n");
 		
 		// change mode		
@@ -110,12 +110,32 @@ int main(int argc, char **argv)
 		EXIT_ERROR("nl80211: can't use wireless device as an AP\n");
 
 	//set interface up (if it was not the case)
-	if ((linux_iface_up(ioctl_socket, nl80211_cfg.ifname) == 0) && (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, true) != 0))
+	if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, true))
 		EXIT_ERROR("error: could'nt set interface up\n");
+
+	//get interface mac address
+	if (linux_get_ifhwaddr(ioctl_socket, nl80211_cfg.ifname, nl80211_data->macaddr))
+		EXIT_ERROR("error: could'nt get mac address\n");
 
 	// Printf for debug
 	fprintf(stderr, "nl80211: '%s' index: %d\n", nl80211_data->phy_info->phyname, nl80211_data->phyindex);
 	fprintf(stderr, "nl80211: mode %d\n", nl80211_data->mode);
+	fprintf(stderr, "nl80211: mac address %02x:%02x:%02x:%02x:%02x:%02x\n", 
+		nl80211_data->macaddr[0], nl80211_data->macaddr[1], nl80211_data->macaddr[2],
+		nl80211_data->macaddr[3], nl80211_data->macaddr[4], nl80211_data->macaddr[5]);
+
+	/*
+	if (linux_br_get(nl80211_data->brname, nl80211_cfg.ifname, &nl80211_data->br_ifindex) == 0) {
+		fprintf(stderr, "nl80211: '%s' bridge index :%d\n", nl80211_data->brname, nl80211_data->br_ifindex);
+	} else {
+		fprintf(stderr, "nl80211: add bridge\n");
+		ifindex = if_nametoindex(params->bridge[i]);
+		if (ifindex)
+			add_ifidx(drv, ifindex);
+		if (ifindex == br_ifindex)
+			br_added = 1;
+	}
+	*/
 
 	// RF-KILL (usefull ?)
 	rfkill_data = rfkill_init(&rfkill_cfg);
