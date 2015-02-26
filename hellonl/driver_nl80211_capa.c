@@ -29,7 +29,7 @@ static int protocol_feature_handler(struct nl_msg *msg, void *arg)
 	return NL_SKIP;
 }
 
-static u32 get_nl80211_protocol_features(struct nl80211_data *drv)
+static u32 get_nl80211_protocol_features(struct nl80211_data *ctx)
 {
 	u32 feat = 0;
 	struct nl_msg *msg;
@@ -38,12 +38,12 @@ static u32 get_nl80211_protocol_features(struct nl80211_data *drv)
 	if (!msg)
 		return 0;
 
-	if (!nl80211_cmd(drv, msg, 0, NL80211_CMD_GET_PROTOCOL_FEATURES)) {
+	if (!nl80211_cmd(ctx, msg, 0, NL80211_CMD_GET_PROTOCOL_FEATURES)) {
 		nlmsg_free(msg);
 		return 0;
 	}
 
-	if (send_and_recv_msgs(drv, msg, protocol_feature_handler, &feat) == 0)
+	if (send_and_recv_msgs(ctx, msg, protocol_feature_handler, &feat) == 0)
 		return feat;
 
 	return 0;
@@ -195,7 +195,7 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 
 
  
-int nl80211_feed_capa(struct nl80211_data *drv)
+int nl80211_feed_capa(struct nl80211_data *ctx)
 {
 
 	struct wiphy_info_data *info = NULL;
@@ -203,12 +203,12 @@ int nl80211_feed_capa(struct nl80211_data *drv)
 	if (info == NULL)
 		return NULL;
 
-	drv->phy_info = info;
+	ctx->phy_info = info;
 
 
 	u32 feat;
 	int flags = 0;
-	feat = get_nl80211_protocol_features(drv);
+	feat = get_nl80211_protocol_features(ctx);
 	if (feat & NL80211_PROTOCOL_FEATURE_SPLIT_WIPHY_DUMP) {
 		flags = NLM_F_DUMP;
 	} 		
@@ -216,13 +216,13 @@ int nl80211_feed_capa(struct nl80211_data *drv)
 	memset(info, 0, sizeof(*info));
 
 	/* CREATE A NETLINK MESSAGE */
-	struct nl_msg *msg = nl80211_cmd_msg(drv, flags, NL80211_CMD_GET_WIPHY);
+	struct nl_msg *msg = nl80211_cmd_msg(ctx, flags, NL80211_CMD_GET_WIPHY);
 	if (!msg || nla_put_flag(msg, NL80211_ATTR_SPLIT_WIPHY_DUMP)) {
 		nlmsg_free(msg);
 		return -1;
 	}
 
-	if (send_and_recv_msgs(drv, msg, wiphy_info_handler, info))
+	if (send_and_recv_msgs(ctx, msg, wiphy_info_handler, info))
 		return -1;
 
 

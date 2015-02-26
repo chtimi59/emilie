@@ -29,10 +29,11 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
 }
 
 
-int get_nl80211_rts_threshold(struct nl80211_data *drv, int* rts)
+int get_nl80211_rts_threshold(struct nl80211_data *ctx, int* rts)
 {
 	/* wireless driver id */
-	int phyidx = 0; // see here /sys/class/ieee80211/%s/index
+	//int phyidx = 0; // see here /sys/class/ieee80211/%s/index
+	int phyidx = ctx->phyindex;
 
 	/**
 	Documentation Overview - libnl Suite
@@ -48,7 +49,7 @@ int get_nl80211_rts_threshold(struct nl80211_data *drv, int* rts)
 		return -1;
 	}
 
-	if (!nl80211_cmd(drv, msg, 0, NL80211_CMD_GET_WIPHY)) {
+	if (!nl80211_cmd(ctx, msg, 0, NL80211_CMD_GET_WIPHY)) {
 		fprintf(stderr, "get_rts_threshold: command error \n");
 		nlmsg_free(msg);
 		return -1;
@@ -60,7 +61,7 @@ int get_nl80211_rts_threshold(struct nl80211_data *drv, int* rts)
 		return -1;
 	}
 
-	if (send_and_recv_msgs(drv, msg, wiphy_info_handler, rts)) {
+	if (send_and_recv_msgs(ctx, msg, wiphy_info_handler, rts)) {
 		fprintf(stderr, "get_rts_threshold: send error (privilege?)\n");
 		return -1;
 	}
@@ -71,10 +72,11 @@ int get_nl80211_rts_threshold(struct nl80211_data *drv, int* rts)
 
 
 
-int set_nl80211_rts_threshold(struct nl80211_data *drv, int rts)
+int set_nl80211_rts_threshold(struct nl80211_data *ctx, int rts)
 {
 	/* wireless driver id */
-	int phyidx = 0; // see here /sys/class/ieee80211/%s/index
+	//int phyidx = 0; // see here /sys/class/ieee80211/%s/index
+	int phyidx = ctx->phyindex;
 
 	/**
 	Documentation Overview - libnl Suite
@@ -90,7 +92,7 @@ int set_nl80211_rts_threshold(struct nl80211_data *drv, int rts)
 		return -1;
 	}
 
-	if (!nl80211_cmd(drv, msg, 0, NL80211_CMD_SET_WIPHY)) {
+	if (!nl80211_cmd(ctx, msg, 0, NL80211_CMD_SET_WIPHY)) {
 		fprintf(stderr, "set_rts_threshold: command error \n");
 		nlmsg_free(msg);
 		return -1;
@@ -108,7 +110,7 @@ int set_nl80211_rts_threshold(struct nl80211_data *drv, int rts)
 		return -1;
 	}
 
-	if (send_and_recv_msgs(drv, msg, NULL, NULL)) {
+	if (send_and_recv_msgs(ctx, msg, NULL, NULL)) {
 		fprintf(stderr, "set_rts_threshold: send error (privilege?)\n");
 		return -1;
 	}

@@ -79,32 +79,39 @@ int main(int argc, char **argv)
 	nl80211_cfg.nl = netlink_data;
 	strlcpy(nl80211_cfg.ifname, "wlan0", 6);
 
-	/*if (linux_iface_up(ioctl_socket, nl80211_cfg.ifname) <= 0)
-		EXIT_ERROR("error: interface is down\n");*/
-
 	nl80211_data = driver_nl80211_init(&nl80211_cfg);
 	if (nl80211_data == NULL)
 		EXIT_ERROR("nl80211: init failed");
 
 	/* Get Capabilitlies/Information */
+
 	if (nl80211_feed_capa(nl80211_data))
 		EXIT_ERROR("nl80211: get capabilities failed\n");
 	if (nl80211_get_wiphy_index(nl80211_data, &nl80211_data->phyindex))
 		EXIT_ERROR("nl80211: could'nt find phy index\n");
+
 	if (nl80211_get_ifmode(nl80211_data, &nl80211_data->mode))
 		EXIT_ERROR("nl80211: could'nt find phy mode\n");	
-	if (nl80211_data->mode != NL80211_IFTYPE_AP) {
+	if (nl80211_data->mode != NL80211_IFTYPE_AP)
+	{
+		// To change mode we first need to set interface down (if it was not the case)
+		if ( (linux_iface_up(ioctl_socket, nl80211_cfg.ifname) == 1) && (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false) != 0) )
+			EXIT_ERROR("error: could'nt set interface down\n");
+		
+		// change mode		
 		fprintf(stderr, "nl80211: change mode from %d to %d\n", nl80211_data->mode, NL80211_IFTYPE_AP);
 		if (nl80211_set_ifmode(nl80211_data, NL80211_IFTYPE_AP))
 			EXIT_ERROR("nl80211: could'nt change phy mode\n");
 		if (nl80211_get_ifmode(nl80211_data, &nl80211_data->mode))
 			EXIT_ERROR("nl80211: could'nt find phy mode\n");
+
 	}
 	if (nl80211_data->mode != NL80211_IFTYPE_AP)
-		EXIT_ERROR("nl80211: can use wireless device as an AP\n");
+		EXIT_ERROR("nl80211: can't use wireless device as an AP\n");
 
-
-
+	//set interface up (if it was not the case)
+	if ((linux_iface_up(ioctl_socket, nl80211_cfg.ifname) == 0) && (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, true) != 0))
+		EXIT_ERROR("error: could'nt set interface up\n");
 
 	// Printf for debug
 	fprintf(stderr, "nl80211: '%s' index: %d\n", nl80211_data->phy_info->phyname, nl80211_data->phyindex);
@@ -117,6 +124,14 @@ int main(int argc, char **argv)
 		EXIT_ERROR("nl80211: RFKILL status not available");
 	}
 
+#if 1
+	// TEST
+	set_nl80211_rts_threshold(nl80211_data, 85);
+	int v = 0;
+	get_nl80211_rts_threshold(nl80211_data, &v);
+	fprintf(stderr, "test : RTS = %d\n", v);
+#endif
+
 	// Init BSS
 	/*if (nl80211_init_bss(&bss)) 
 		EXIT_ERROR("nl80211: init bss failed");
@@ -127,11 +142,7 @@ int main(int argc, char **argv)
 
 
 
-	// TEST
-	set_nl80211_rts_threshold(nl80211_data, 85);
-	int v = 0;
-	get_nl80211_rts_threshold(nl80211_data, &v);
-	fprintf(stderr, "test : RTS = %d\n",v);
+
 
 
 
