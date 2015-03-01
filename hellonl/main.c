@@ -19,6 +19,7 @@
 #include "driver_nl80211_capa.h"
 #include "driver_nl80211_interface.h"
 #include "driver_nl80211_monitor.h"
+#include "driver_nl80211_freq.h"
 
 
 void OnProperClose(int sig, void *signal_ctx) {
@@ -139,7 +140,12 @@ int main(int argc, char **argv)
 	fprintf(stderr, "set interface %s up\n", nl80211_cfg.ifname);
 	if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, true))
 		EXIT_ERROR("error: could'nt set interface up\n");
-	
+
+	// Set frequency
+	int freq = 2437;
+	fprintf(stderr, "nl80211: set frequency %dMHZ\n", freq);
+	if (nl80211_set_channel(nl80211_data, freq))
+		EXIT_ERROR("error: could'nt set frequency\n");
 
 
 	/*
