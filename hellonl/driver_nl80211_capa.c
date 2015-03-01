@@ -198,11 +198,10 @@ static int wiphy_info_handler(struct nl_msg *msg, void *arg)
  
 int nl80211_feed_capa(struct nl80211_data *ctx)
 {
-
 	struct wiphy_info_data *info = NULL;
 	info = zalloc(sizeof(struct wiphy_info_data));
 	if (info == NULL)
-		return NULL;
+		return -1;
 
 	ctx->phy_info = info;
 
@@ -218,15 +217,22 @@ int nl80211_feed_capa(struct nl80211_data *ctx)
 
 	/* CREATE A NETLINK MESSAGE */
 	struct nl_msg *msg = nl80211_cmd_msg(ctx, flags, NL80211_CMD_GET_WIPHY);
-	if (!msg || nla_put_flag(msg, NL80211_ATTR_SPLIT_WIPHY_DUMP)) {
+	if (!msg) {
 		nlmsg_free(msg);
 		return -1;
 	}
 
-	if (send_and_recv_msgs(ctx, msg, wiphy_info_handler, info))
+	if (nla_put_flag(msg, NL80211_ATTR_SPLIT_WIPHY_DUMP)) {
+		nlmsg_free(msg);
 		return -1;
+	}
 
+	if (send_and_recv_msgs(ctx, msg, wiphy_info_handler, info)) {
+		return -1;
+	}
 
+	memset(ctx->phy_name, 0, IFNAMSIZ);
+	snprintf(ctx->phy_name, IFNAMSIZ, info->phyname);
 	return 0;
 }
 

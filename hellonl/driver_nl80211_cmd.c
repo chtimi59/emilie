@@ -72,12 +72,14 @@ int send_and_recv(struct nl80211_data *ctx, struct nl_handle *nl_handle, struct 
 		return -ENOMEM;
 
 	cb = nl_cb_clone(ctx->nl_cb);
-	if (!cb)
+	if (!cb) {
 		goto out;
+	}
 
 	err = nl_send_auto_complete(nl_handle, msg);
-	if (err < 0)
+	if (err < 0) {
 		goto out;
+	}
 
 	err = 1;
 

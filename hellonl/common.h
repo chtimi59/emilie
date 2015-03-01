@@ -67,7 +67,7 @@ static inline void * realloc_array(void *ptr, size_t nmemb, size_t size) {
 	return realloc(ptr, nmemb * size);
 }
 
-
+#define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
 
 
 #include "eloop.h"

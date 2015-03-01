@@ -17,18 +17,25 @@ struct nl80211_data {
 	struct nl_handle *nl;
 	struct nl_handle *nl_event;
 	
-	int nl80211_id;		   // netlink familly
-	int ifindex;		   // interface index (ex: wlan0)
-	int phyindex;		   // phy index (ex: phy0)
+	int nl80211_id;				 // netlink familly
+	char ifname[IFNAMSIZ];		 // wifi interface name (ex: eth0)
+	int  ifindex;				 // wifi index
 	
+	u8 macaddr[ETH_ALEN];		 // mac address
+	enum nl80211_iftype mode;	 // should be AP mode
+
+	char monitor_name[IFNAMSIZ]; // monitor name (ex: mon.wlan0)
+	int  monitor_ifidx;			 // monitor interface index
+	int  monitor_sock;			 // monitor socket
+
+	char phy_name[IFNAMSIZ]; // monitor name (ex: phy0)
+	int  phyindex;			 // phy index (ex: phy0)
+	struct wiphy_info_data* phy_info; // info from get_capa()
+
 	char brname[IFNAMSIZ]; // bridge name (ex: eth0)
 	int  br_ifindex;	   // bridge index
-
-	struct wiphy_info_data* phy_info; // info from get_capa()
-	u8 macaddr[ETH_ALEN];			  // mac address
-	enum nl80211_iftype mode;		  // should be AP mode
-
 };
+
 
 struct nl80211_config {
 	void *ctx;

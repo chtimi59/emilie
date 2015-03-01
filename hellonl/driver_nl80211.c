@@ -49,9 +49,17 @@ struct nl80211_data * driver_nl80211_init(struct nl80211_config *cfg)
 		return NULL;
 	
 	ctx->cfg = cfg;
+	
+	ctx->ifindex = -1;
+	ctx->phyindex = -1;
+	ctx->monitor_ifidx = -1;
+	ctx->br_ifindex = -1;
 
+	memset(ctx->ifname, 0, IFNAMSIZ);
+	snprintf(ctx->ifname, IFNAMSIZ, ctx->cfg->ifname);
 	ctx->ifindex  = if_nametoindex(cfg->ifname);
-	fprintf(stderr, "nl80211: '%s' index: %d\n", cfg->ifname, ctx->ifindex);
+
+	fprintf(stderr, "nl80211: '%s' index: %d\n", ctx->ifname, ctx->ifindex);
 
 	ctx->nl_cb = nl_cb_alloc(NL_CB_DEFAULT);
 	if (ctx->nl_cb == NULL) {
@@ -108,7 +116,6 @@ void driver_nl80211_deinit(struct nl80211_data *ctx)
 		return;
 	
 	if (ctx->phy_info) free(ctx->phy_info);
-	//if (ctx->macaddr)  free(ctx->macaddr);
 	if (ctx->nl_event) nl_destroy_handles(&ctx->nl_event);
 	if (ctx->nl) nl_destroy_handles(&ctx->nl);
 	nl_cb_put(ctx->nl_cb);

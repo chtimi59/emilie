@@ -11,6 +11,7 @@ OBJS +=  driver_nl80211_cmd.o
 OBJS +=  driver_nl80211_capa.o
 OBJS +=  driver_nl80211_rts.o
 OBJS +=  driver_nl80211_interface.o
+OBJS +=  driver_nl80211_monitor.o
 OBJS +=  ioctl.o
 OBJS +=  common.o 
 OBJS +=  eloop.o 

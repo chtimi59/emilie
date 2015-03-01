@@ -109,7 +109,7 @@ int set_nl80211_rts_threshold(struct nl80211_data *ctx, int rts)
 		nlmsg_free(msg);
 		return -1;
 	}
-
+	
 	if (send_and_recv_msgs(ctx, msg, NULL, NULL)) {
 		fprintf(stderr, "set_rts_threshold: send error (privilege?)\n");
 		return -1;

@@ -29,6 +29,9 @@
     <Filter Include="netlink\interfacce">
       <UniqueIdentifier>{103f58b6-7d26-4277-8f59-57611b53231d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="netlink\monitor">
+      <UniqueIdentifier>{714c3dbd-490d-4211-a1f8-c5985dc5b2fa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common.c">
@@ -64,6 +67,9 @@
     </ClCompile>
     <ClCompile Include="driver_nl80211_interface.c">
       <Filter>netlink\interfacce</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_monitor.c">
+      <Filter>netlink\monitor</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -102,6 +108,9 @@
     </ClInclude>
     <ClInclude Include="driver_nl80211_interface.h">
       <Filter>netlink\interfacce</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_monitor.h">
+      <Filter>netlink\monitor</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

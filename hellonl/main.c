@@ -18,7 +18,7 @@
 #include "driver_nl80211_rts.h"
 #include "driver_nl80211_capa.h"
 #include "driver_nl80211_interface.h"
-
+#include "driver_nl80211_monitor.h"
 
 
 void OnProperClose(int sig, void *signal_ctx) {
@@ -79,50 +79,68 @@ int main(int argc, char **argv)
 	nl80211_cfg.nl = netlink_data;
 	strlcpy(nl80211_cfg.ifname, "wlan0", 6);
 
+	// set interface down (seems safe for configuration)
+	fprintf(stderr, "set interface %s down\n", nl80211_cfg.ifname);
+	if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false))
+		EXIT_ERROR("error: could'nt set interface down\n");
+
 	nl80211_data = driver_nl80211_init(&nl80211_cfg);
 	if (nl80211_data == NULL)
 		EXIT_ERROR("nl80211: init failed");
 
-	/* Get Capabilitlies/Information */
+
+
+	/* Get Physical interface associate to nl80211  +Some Capabilitlies */
 
 	if (nl80211_feed_capa(nl80211_data))
 		EXIT_ERROR("nl80211: get capabilities failed\n");
 	if (nl80211_get_wiphy_index(nl80211_data, &nl80211_data->phyindex))
 		EXIT_ERROR("nl80211: could'nt find phy index\n");
+	fprintf(stderr, "nl80211: '%s' index: %d\n", nl80211_data->phy_name, nl80211_data->phyindex);
 
+
+#if 1
+	// TEST
+	set_nl80211_rts_threshold(nl80211_data, 85);
+	int v = 0;
+	get_nl80211_rts_threshold(nl80211_data, &v);
+	fprintf(stderr, "test : RTS = %d\n", v);
+#endif
+
+
+	// Change ifmode if needed
 	if (nl80211_get_ifmode(nl80211_data, &nl80211_data->mode))
 		EXIT_ERROR("nl80211: could'nt find phy mode\n");	
 	if (nl80211_data->mode != NL80211_IFTYPE_AP)
 	{
-		// To change mode we first need to set interface down
-		if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false))
-			EXIT_ERROR("error: could'nt set interface down\n");
-		
 		// change mode		
 		fprintf(stderr, "nl80211: change mode from %d to %d\n", nl80211_data->mode, NL80211_IFTYPE_AP);
 		if (nl80211_set_ifmode(nl80211_data, NL80211_IFTYPE_AP))
 			EXIT_ERROR("nl80211: could'nt change phy mode\n");
 		if (nl80211_get_ifmode(nl80211_data, &nl80211_data->mode))
 			EXIT_ERROR("nl80211: could'nt find phy mode\n");
-
 	}
 	if (nl80211_data->mode != NL80211_IFTYPE_AP)
 		EXIT_ERROR("nl80211: can't use wireless device as an AP\n");
+	fprintf(stderr, "nl80211: phy mode %d\n", nl80211_data->mode);
 
-	//set interface up (if it was not the case)
-	if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, true))
-		EXIT_ERROR("error: could'nt set interface up\n");
 
 	//get interface mac address
 	if (linux_get_ifhwaddr(ioctl_socket, nl80211_cfg.ifname, nl80211_data->macaddr))
 		EXIT_ERROR("error: could'nt get mac address\n");
-
-	// Printf for debug
-	fprintf(stderr, "nl80211: '%s' index: %d\n", nl80211_data->phy_info->phyname, nl80211_data->phyindex);
-	fprintf(stderr, "nl80211: mode %d\n", nl80211_data->mode);
 	fprintf(stderr, "nl80211: mac address %02x:%02x:%02x:%02x:%02x:%02x\n", 
 		nl80211_data->macaddr[0], nl80211_data->macaddr[1], nl80211_data->macaddr[2],
 		nl80211_data->macaddr[3], nl80211_data->macaddr[4], nl80211_data->macaddr[5]);
+
+	// Add monitor interface
+	nl80211_create_monitor_interface(nl80211_data);
+
+	// Set interface up
+	fprintf(stderr, "set interface %s up\n", nl80211_cfg.ifname);
+	if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, true))
+		EXIT_ERROR("error: could'nt set interface up\n");
+	
+
 
 	/*
 	if (linux_br_get(nl80211_data->brname, nl80211_cfg.ifname, &nl80211_data->br_ifindex) == 0) {
@@ -144,13 +162,7 @@ int main(int argc, char **argv)
 		EXIT_ERROR("nl80211: RFKILL status not available");
 	}
 
-#if 1
-	// TEST
-	set_nl80211_rts_threshold(nl80211_data, 85);
-	int v = 0;
-	get_nl80211_rts_threshold(nl80211_data, &v);
-	fprintf(stderr, "test : RTS = %d\n", v);
-#endif
+
 
 	// Init BSS
 	/*if (nl80211_init_bss(&bss)) 
@@ -177,7 +189,7 @@ int main(int argc, char **argv)
 exit_label:
 	fprintf(stderr, (err<0) ? "failed\n" : "success\n");
 
-
+	nl80211_remove_monitor_interface(nl80211_data);
 	//nl80211_destroy_bss(&bss);
 
 	rfkill_deinit(rfkill_data);
