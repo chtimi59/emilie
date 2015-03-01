@@ -20,6 +20,7 @@
 #include "driver_nl80211_interface.h"
 #include "driver_nl80211_monitor.h"
 #include "driver_nl80211_freq.h"
+#include "driver_nl80211_frag.h"
 
 
 void OnProperClose(int sig, void *signal_ctx) {
@@ -101,13 +102,26 @@ int main(int argc, char **argv)
 
 
 #if 1
-	// TEST
-	set_nl80211_rts_threshold(nl80211_data, 85);
-	int v = 0;
-	get_nl80211_rts_threshold(nl80211_data, &v);
-	fprintf(stderr, "test : RTS = %d\n", v);
+{
+	// Set RTS threshold
+	int rts = 2347;
+	set_nl80211_rts_threshold(nl80211_data, rts);
+	get_nl80211_rts_threshold(nl80211_data, &rts);
+	if (rts == -1) fprintf(stderr, "nl80211: RTS off\n", rts);
+	if (rts != -1) fprintf(stderr, "nl80211: RTS = %d B\n", rts);
+}
 #endif
 
+#if 1
+{
+	// Set Fragmentation threshold
+	int frag = 2346;
+	fprintf(stderr, "nl80211: set fragmentation %d B\n", frag);
+	if (set_nl80211_frag_threshold(nl80211_data, frag))
+		EXIT_ERROR("error: could'nt set fragmentation\n");
+
+}
+#endif
 
 	// Change ifmode if needed
 	if (nl80211_get_ifmode(nl80211_data, &nl80211_data->mode))
@@ -146,6 +160,9 @@ int main(int argc, char **argv)
 	fprintf(stderr, "nl80211: set frequency %dMHZ\n", freq);
 	if (nl80211_set_channel(nl80211_data, freq))
 		EXIT_ERROR("error: could'nt set frequency\n");
+
+	
+	
 
 
 	/*

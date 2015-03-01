@@ -13,6 +13,7 @@ OBJS +=  driver_nl80211_rts.o
 OBJS +=  driver_nl80211_interface.o
 OBJS +=  driver_nl80211_monitor.o
 OBJS +=  driver_nl80211_freq.o
+OBJS +=  driver_nl80211_frag.o
 OBJS +=  ioctl.o
 OBJS +=  common.o 
 OBJS +=  eloop.o 

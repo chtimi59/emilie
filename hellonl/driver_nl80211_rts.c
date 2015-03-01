@@ -78,6 +78,15 @@ int set_nl80211_rts_threshold(struct nl80211_data *ctx, int rts)
 	//int phyidx = 0; // see here /sys/class/ieee80211/%s/index
 	int phyidx = ctx->phyindex;
 
+
+	u32 val;
+
+	if (rts >= 2347)
+		val = (u32)-1;
+	else
+		val = rts;
+
+
 	/**
 	Documentation Overview - libnl Suite
 	http://www.infradead.org/~tgr/libnl/doc/
@@ -104,7 +113,7 @@ int set_nl80211_rts_threshold(struct nl80211_data *ctx, int rts)
 		return -1;
 	}
 
-	if (nla_put_u32(msg, NL80211_ATTR_WIPHY_RTS_THRESHOLD, rts)) {
+	if (nla_put_u32(msg, NL80211_ATTR_WIPHY_RTS_THRESHOLD, val)) {
 		fprintf(stderr, "set_rts_threshold: command attribute error\n");
 		nlmsg_free(msg);
 		return -1;
