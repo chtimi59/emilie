@@ -1,5 +1,12 @@
 #include "common.h"
 
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+#pragma message "LITTLE Endian"
+#elif __BYTE_ORDER == __BIG_ENDIAN
+#pragma message "BIG Endian"
+#endif
+
+
 #include <netlink/netlink.h>
 #include <netlink/genl/genl.h>
 #include <netlink/genl/family.h>
@@ -21,6 +28,7 @@
 #include "driver_nl80211_monitor.h"
 #include "driver_nl80211_freq.h"
 #include "driver_nl80211_frag.h"
+#include "driver_nl80211_beacon.h"
 
 
 void OnProperClose(int sig, void *signal_ctx) {
@@ -107,7 +115,7 @@ int main(int argc, char **argv)
 	int rts = 2347;
 	set_nl80211_rts_threshold(nl80211_data, rts);
 	get_nl80211_rts_threshold(nl80211_data, &rts);
-	if (rts == -1) fprintf(stderr, "nl80211: RTS off\n", rts);
+	if (rts == -1) fprintf(stderr, "nl80211: RTS off\n");
 	if (rts != -1) fprintf(stderr, "nl80211: RTS = %d B\n", rts);
 }
 #endif
@@ -161,9 +169,9 @@ int main(int argc, char **argv)
 	if (nl80211_set_channel(nl80211_data, freq))
 		EXIT_ERROR("error: could'nt set frequency\n");
 
-	
-	
-
+	// Set Beacons
+	if (nl80211_set_ap(nl80211_data))
+		EXIT_ERROR("error: could'nt set beacon\n");
 
 	/*
 	if (linux_br_get(nl80211_data->brname, nl80211_cfg.ifname, &nl80211_data->br_ifindex) == 0) {

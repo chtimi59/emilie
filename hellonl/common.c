@@ -41,3 +41,18 @@ size_t strlcpy(char *dest, const char *src, size_t siz)
 
 	return s - src - 1;
 }
+
+
+
+void fhexdump(struct _IO_FILE *fd, const char *title, const u8 *buf, size_t len) {
+	size_t i;
+	if (!fd) return;
+	fprintf(fd, "%s - hexdump(len=%lu):", title, (unsigned long)len);
+	if (buf == NULL) {
+		fprintf(fd, " [NULL]");
+	} else {
+		for (i = 0; i < len; i++)
+			fprintf(fd, " %02x", buf[i]);
+	}
+	fprintf(fd, "\n");
+}

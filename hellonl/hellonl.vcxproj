@@ -67,8 +67,11 @@
     <ClCompile Include="common.c" />
     <ClCompile Include="driver_helper.cxx" />
     <ClCompile Include="driver_nl80211.c" />
+    <ClCompile Include="driver_nl80211_beacon.c" />
     <ClCompile Include="driver_nl80211_capa.c" />
     <ClCompile Include="driver_nl80211_cmd.c" />
+    <ClCompile Include="driver_nl80211_frag.c" />
+    <ClCompile Include="driver_nl80211_freq.c" />
     <ClCompile Include="driver_nl80211_interface.c" />
     <ClCompile Include="driver_nl80211_monitor.c" />
     <ClCompile Include="driver_nl80211_rts.c" />
@@ -81,11 +84,15 @@
   <ItemGroup>
     <ClInclude Include="common.h" />
     <ClInclude Include="driver_nl80211.h" />
+    <ClInclude Include="driver_nl80211_beacon.h" />
     <ClInclude Include="driver_nl80211_capa.h" />
+    <ClInclude Include="driver_nl80211_frag.h" />
+    <ClInclude Include="driver_nl80211_freq.h" />
     <ClInclude Include="driver_nl80211_interface.h" />
     <ClInclude Include="driver_nl80211_monitor.h" />
     <ClInclude Include="driver_nl80211_rts.h" />
     <ClInclude Include="eloop.h" />
+    <ClInclude Include="ieee802_11_defs.h" />
     <ClInclude Include="ioctl.h" />
     <ClInclude Include="list.h" />
     <ClInclude Include="netlink.h" />

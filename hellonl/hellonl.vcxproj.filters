@@ -32,6 +32,15 @@
     <Filter Include="netlink\monitor">
       <UniqueIdentifier>{714c3dbd-490d-4211-a1f8-c5985dc5b2fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="netlink\freq">
+      <UniqueIdentifier>{fefab6f5-24d3-4ee7-ab33-d59e1549d262}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\frag">
+      <UniqueIdentifier>{ffb56e3e-298b-40bd-8c95-396e807e2ffd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\beacon">
+      <UniqueIdentifier>{7800108e-c84a-4fcc-8ef1-ce8994bbb765}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="common.c">
@@ -70,6 +79,15 @@
     </ClCompile>
     <ClCompile Include="driver_nl80211_monitor.c">
       <Filter>netlink\monitor</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_freq.c">
+      <Filter>netlink\freq</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_frag.c">
+      <Filter>netlink\frag</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_beacon.c">
+      <Filter>netlink\beacon</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +129,18 @@
     </ClInclude>
     <ClInclude Include="driver_nl80211_monitor.h">
       <Filter>netlink\monitor</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_freq.h">
+      <Filter>netlink\freq</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_frag.h">
+      <Filter>netlink\frag</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_beacon.h">
+      <Filter>netlink\beacon</Filter>
+    </ClInclude>
+    <ClInclude Include="ieee802_11_defs.h">
+      <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
