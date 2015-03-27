@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Fichiers d%27en-tête">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="rfkill">
+      <UniqueIdentifier>{24c090b2-5586-4eea-a3a2-d142f83e0852}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="eloop">
+      <UniqueIdentifier>{86c4a3c9-39ac-456c-9b49-d4778f5d8e24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="common">
+      <UniqueIdentifier>{57d15487-aed9-4f1d-9536-1ea7c26d3bfb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ioctl">
+      <UniqueIdentifier>{c74447d8-a8a8-41a1-aa95-e9a29224e66b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink">
+      <UniqueIdentifier>{01829868-c4d8-4413-b946-10ac7e54b838}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\capa">
+      <UniqueIdentifier>{edf621e5-d8fb-437b-bd41-b151da554678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\rts">
+      <UniqueIdentifier>{11f5fae4-2030-440b-b2c8-df09dbda58c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\interfacce">
+      <UniqueIdentifier>{103f58b6-7d26-4277-8f59-57611b53231d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\monitor">
+      <UniqueIdentifier>{714c3dbd-490d-4211-a1f8-c5985dc5b2fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\freq">
+      <UniqueIdentifier>{fefab6f5-24d3-4ee7-ab33-d59e1549d262}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\frag">
+      <UniqueIdentifier>{ffb56e3e-298b-40bd-8c95-396e807e2ffd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink\beacon">
+      <UniqueIdentifier>{7800108e-c84a-4fcc-8ef1-ce8994bbb765}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="common.c">
+      <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="eloop.c">
+      <Filter>eloop</Filter>
+    </ClCompile>
+    <ClCompile Include="ioctl.c">
+      <Filter>ioctl</Filter>
+    </ClCompile>
+    <ClCompile Include="netlink.c">
+      <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_helper.cxx">
+      <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211.c">
+      <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="rfkill.c">
+      <Filter>rfkill</Filter>
+    </ClCompile>
+    <ClCompile Include="main.c" />
+    <ClCompile Include="driver_nl80211_cmd.c">
+      <Filter>netlink</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_capa.c">
+      <Filter>netlink\capa</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_rts.c">
+      <Filter>netlink\rts</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_interface.c">
+      <Filter>netlink\interfacce</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_monitor.c">
+      <Filter>netlink\monitor</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_freq.c">
+      <Filter>netlink\freq</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_frag.c">
+      <Filter>netlink\frag</Filter>
+    </ClCompile>
+    <ClCompile Include="driver_nl80211_beacon.c">
+      <Filter>netlink\beacon</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="common.h">
+      <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="eloop.h">
+      <Filter>eloop</Filter>
+    </ClInclude>
+    <ClInclude Include="list.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="nl80211.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ioctl.h">
+      <Filter>ioctl</Filter>
+    </ClInclude>
+    <ClInclude Include="netlink.h">
+      <Filter>netlink</Filter>
+    </ClInclude>
+    <ClInclude Include="priv_netlink.h">
+      <Filter>netlink</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211.h">
+      <Filter>netlink</Filter>
+    </ClInclude>
+    <ClInclude Include="rfkill.h">
+      <Filter>rfkill</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_capa.h">
+      <Filter>netlink\capa</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_rts.h">
+      <Filter>netlink\rts</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_interface.h">
+      <Filter>netlink\interfacce</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_monitor.h">
+      <Filter>netlink\monitor</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_freq.h">
+      <Filter>netlink\freq</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_frag.h">
+      <Filter>netlink\frag</Filter>
+    </ClInclude>
+    <ClInclude Include="driver_nl80211_beacon.h">
+      <Filter>netlink\beacon</Filter>
+    </ClInclude>
+    <ClInclude Include="ieee802_11_defs.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Makefile" />
+  </ItemGroup>
+</Project>
