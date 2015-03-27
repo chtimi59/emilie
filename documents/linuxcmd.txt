@@ -33,7 +33,15 @@ sudo iwconfig wlan0 essid EMILIE
 ifconfig wlan0 up
 
 #cfg80211 tools : list of stations
-iw wlan0 station dump
+sudo iw wlan0 scan | grep SSID # scan
+sudo iw wlan0 connect inno-guest # connect to ESSID
+sudo iw wlan0 link # get status
+
+sudo iw wlan0 station dump # list of stations
+
+## WARNING CHECK THAT YOUR WIFI DEVICE SUPPORT WPA !!!!!!!!!!
+wpa_supplicant -d -Dnl80211 -c/etc/wpa_supplicant.conf -iwlan0 -B
+sudo wpa_cli -iwlan0 status #get status
 
 --------------------------------------
 |
@@ -110,6 +118,9 @@ sudo wireshark
 #show all running process (= ls /proc/ )
 ps -x
 
+# use to see if wpa_supplicant is running (not PPID=1 means init starts the deamon)
+ps -lA | grep wpa
+ps -ef | awk '$3 == 1'
 
 
 --------------------------------------
