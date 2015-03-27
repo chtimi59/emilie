@@ -4,3 +4,6 @@
 hellonl
 
 /*.opensdf
+
+/hellonl.vcxproj.user
+/ipch
