@@ -89,10 +89,14 @@ int nl80211_set_ap(struct nl80211_data *ctx)
 		/* DS Params */
 		pos = hostapd_eid_ds_params(pos);
         
-		size_t head_len = pos - (u8 *)&head;
-		fhexdump(stderr, "nl80211: Beacon head", (const u8*)&head, head_len);
+		size_t head_len = pos - (u8*)&head;
+        const u8* pHead = (u8*)malloc(head_len);
+        memcpy(pHead, &head, 52);
+        fprintf(stderr, "%d\n", sizeof(head));
+        fhexdump(stderr, "nl80211: Beacon head", pHead, head_len);
+        free(pHead);
+        
         #if 0
-                
 		if (nla_put(msg, NL80211_ATTR_BEACON_HEAD, head_len, &head))
 			goto fail;
         #endif

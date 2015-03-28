@@ -24,7 +24,8 @@ void linux_free_socket(int socket) {
 int linux_get_if_ifidx(int sock, const char *ifname) {
     struct ifreq    ifr;
     strncpy(ifr.ifr_name, ifname, IF_NAMESIZE);
-    return ioctl(sock, SIOCGIFINDEX, &ifr);
+    if (-1==ioctl(sock, SIOCGIFINDEX, &ifr)) return -1;
+    return ifr.ifr_ifindex;
 }
 
 /* linux_set_iface_flags

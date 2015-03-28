@@ -105,7 +105,6 @@ int main(int argc, char **argv)
         EXIT_ERROR("error: no wlan interface found (tested: wlan0 -> wlan5)\n");
     } while(0);
     
-
 	// set interface down if exists (seems safe for configuration)
     fprintf(stderr, "set interface %s down\n", nl80211_cfg.ifname);
     if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false))
