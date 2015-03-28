@@ -65,18 +65,18 @@ void nl80211_nlmsg_clear(struct nl_msg *msg)
 int send_and_recv(struct nl80211_data *ctx, struct nl_handle *nl_handle, struct nl_msg *msg,
 	int(*valid_handler)(struct nl_msg *, void *), void *valid_data)
 {
-	struct nl_cb *cb;
+	struct nl_cb *cb = NULL;
 	int err = -ENOMEM;
 
 	if (!msg)
 		return -ENOMEM;
-
+    
 	cb = nl_cb_clone(ctx->nl_cb);
 	if (!cb) {
 		goto out;
 	}
 
-	err = nl_send_auto_complete(nl_handle, msg);
+    err = nl_send_auto_complete(nl_handle, msg);
 	if (err < 0) {
 		goto out;
 	}
@@ -89,7 +89,7 @@ int send_and_recv(struct nl80211_data *ctx, struct nl_handle *nl_handle, struct 
 
 	if (valid_handler)
 		nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, valid_handler, valid_data);
-
+        
 	while (err > 0) {
 		int res = nl_recvmsgs(nl_handle, cb);
 		if (res < 0) {

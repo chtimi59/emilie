@@ -4,6 +4,9 @@
 void linux_free_socket(int socket);
 int  linux_create_socket(void);
 
+
+int linux_get_if_ifidx(int sock, const char *ifname);
+
 int linux_set_iface_flags(int sock, const char *ifname, int dev_up);
 int linux_iface_up(int sock, const char *ifname);
 

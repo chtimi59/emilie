@@ -54,11 +54,11 @@ int nl80211_set_ap(struct nl80211_data *ctx)
 	msg = nlmsg_alloc();
 	if (!msg)
 		goto fail;
-
 	if (!nl80211_cmd(ctx, msg, 0, NL80211_CMD_NEW_BEACON))
 		goto fail;
 	
 	{
+        
 		struct ieee80211_mgmt head;
 		u8 *pos;
 
@@ -74,7 +74,7 @@ int nl80211_set_ap(struct nl80211_data *ctx)
 
 		pos = (u8*)(&head.u.beacon.variable[0]);
 
-		/* SSID */
+        /* SSID */
 		#define SSID "test"
 		int ssid_len = strlen(SSID);
 
@@ -88,14 +88,16 @@ int nl80211_set_ap(struct nl80211_data *ctx)
 
 		/* DS Params */
 		pos = hostapd_eid_ds_params(pos);
-
+        
 		size_t head_len = pos - (u8 *)&head;
 		fhexdump(stderr, "nl80211: Beacon head", (const u8*)&head, head_len);
-
-
+        #if 0
+                
 		if (nla_put(msg, NL80211_ATTR_BEACON_HEAD, head_len, &head))
 			goto fail;
+        #endif
 	}
+
 	goto fail;
 
 
@@ -128,9 +130,10 @@ int nl80211_set_ap(struct nl80211_data *ctx)
 		fprintf(stderr, "nl80211: Failed to set fragmentation: %d (%s)\n", ret, strerror(-ret));
 		return -1;
 	}
-#endif
+
 
 	return 0;
+#endif
 
 fail:
 	if (msg) nlmsg_free(msg);

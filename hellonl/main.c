@@ -87,18 +87,34 @@ int main(int argc, char **argv)
 	/* ATTACH NL80211 family */
 	nl80211_cfg.ioctl_sock = ioctl_socket;
 	nl80211_cfg.nl = netlink_data;
-	strlcpy(nl80211_cfg.ifname, "wlan0", 6);
 
-	// set interface down (seems safe for configuration)
-	fprintf(stderr, "set interface %s down\n", nl80211_cfg.ifname);
-	if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false))
-		EXIT_ERROR("error: could'nt set interface down\n");
+    // test wlan0-5 interfaces    
+    do {        
+        strlcpy(nl80211_cfg.ifname, "wlan0", 6);
+        if (-1!=linux_get_if_ifidx(ioctl_socket, nl80211_cfg.ifname)) break;
+        strlcpy(nl80211_cfg.ifname, "wlan1", 6);
+        if (-1!=linux_get_if_ifidx(ioctl_socket, nl80211_cfg.ifname)) break;
+        strlcpy(nl80211_cfg.ifname, "wlan2", 6);
+        if (-1!=linux_get_if_ifidx(ioctl_socket, nl80211_cfg.ifname)) break;
+        strlcpy(nl80211_cfg.ifname, "wlan3", 6);
+        if (-1!=linux_get_if_ifidx(ioctl_socket, nl80211_cfg.ifname)) break;
+        strlcpy(nl80211_cfg.ifname, "wlan4", 6);
+        if (-1!=linux_get_if_ifidx(ioctl_socket, nl80211_cfg.ifname)) break;
+        strlcpy(nl80211_cfg.ifname, "wlan5", 6);
+        if (-1!=linux_get_if_ifidx(ioctl_socket, nl80211_cfg.ifname)) break;
+        EXIT_ERROR("error: no wlan interface found (tested: wlan0 -> wlan5)\n");
+    } while(0);
+    
+
+	// set interface down if exists (seems safe for configuration)
+    fprintf(stderr, "set interface %s down\n", nl80211_cfg.ifname);
+    if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false))
+        EXIT_ERROR("error: could'nt set interface down\n");
 
 	nl80211_data = driver_nl80211_init(&nl80211_cfg);
 	if (nl80211_data == NULL)
 		EXIT_ERROR("nl80211: init failed");
-
-
+    
 
 	/* Get Physical interface associate to nl80211  +Some Capabilitlies */
 
@@ -156,7 +172,11 @@ int main(int argc, char **argv)
 		nl80211_data->macaddr[3], nl80211_data->macaddr[4], nl80211_data->macaddr[5]);
 
 	// Add monitor interface
-	nl80211_create_monitor_interface(nl80211_data);
+    memset(nl80211_data->monitor_name, 0, IFNAMSIZ);
+	snprintf(nl80211_data->monitor_name, IFNAMSIZ, "mon.%s", nl80211_data->ifname);
+    nl80211_data->monitor_ifidx = linux_get_if_ifidx(ioctl_socket, nl80211_data->monitor_name);
+    if (nl80211_create_monitor_interface(nl80211_data))
+        EXIT_ERROR("nl80211: Monitor interface error\n");
 
 	// Set interface up
 	fprintf(stderr, "set interface %s up\n", nl80211_cfg.ifname);
@@ -220,7 +240,7 @@ int main(int argc, char **argv)
 exit_label:
 	fprintf(stderr, (err<0) ? "failed\n" : "success\n");
 
-	nl80211_remove_monitor_interface(nl80211_data);
+	if (nl80211_data) nl80211_remove_monitor_interface(nl80211_data);
 	//nl80211_destroy_bss(&bss);
 
 	rfkill_deinit(rfkill_data);

@@ -77,9 +77,8 @@ static int nl80211_create_iface_once(struct nl80211_data* ctx, int(*handler)(str
 	fail:
 		nlmsg_free(msg);
 		fprintf(stderr, "nl80211: Failed to create Monitor interface: %d (%s)\n", ret, strerror(-ret));
-		return ret;
+		return -1;
 	}
-
 
 	ifidx = if_nametoindex(ifname);
 	fprintf(stderr, "nl80211: New interface %s created at ifindex=%d\n", ifname, ifidx);
@@ -270,24 +269,26 @@ static int add_monitor_filter(int s)
 
 int nl80211_create_monitor_interface(struct nl80211_data* ctx)
 {
-	memset(ctx->monitor_name, 0, IFNAMSIZ);
-	snprintf(ctx->monitor_name, IFNAMSIZ, "mon.%s", ctx->ifname);
-	ctx->monitor_ifidx = nl80211_create_iface_once(ctx, NULL, NULL);
-
-	if (ctx->monitor_ifidx == -EOPNOTSUPP) {
-		/*
-		* This is backward compatibility for a few versions of
-		* the kernel only that didn't advertise the right
-		* attributes for the only driver that then supported
-		* AP mode w/o monitor -- ath6kl.
-		*/
-		fprintf(stderr, "nl80211: Driver does not support monitor interface type - try to run without it\n");
-	}
+    if (ctx->monitor_ifidx < 0) {
+        // create monitor
+	    ctx->monitor_ifidx = nl80211_create_iface_once(ctx, NULL, NULL);
+	    if (ctx->monitor_ifidx == -EOPNOTSUPP) {
+		    /*
+		    * This is backward compatibility for a few versions of
+		    * the kernel only that didn't advertise the right
+		    * attributes for the only driver that then supported
+		    * AP mode w/o monitor -- ath6kl.
+		    */
+		    fprintf(stderr, "nl80211: Driver does not support monitor interface type - try to run without it\n");
+	    }
+    } else {
+        fprintf(stderr, "nl80211: re-use monitor '%s' index: %d\n",ctx->monitor_name, ctx->monitor_ifidx);
+    }
 
 	if (ctx->monitor_ifidx < 0)
 		return -1;
 
-	// interface up!
+	// interface up!    
 	if (linux_set_iface_flags(ctx->cfg->ioctl_sock, ctx->monitor_name, 1))
 		goto error;
 
@@ -329,9 +330,9 @@ int nl80211_create_monitor_interface(struct nl80211_data* ctx)
 			goto error;
 		}
 	}
-
+    
 	return 0;
-
+    
 error:
 	nl80211_remove_monitor_interface(ctx);
 	return -1;
@@ -341,7 +342,6 @@ error:
 void nl80211_remove_monitor_interface(struct nl80211_data* ctx)
 {
 	if (ctx->monitor_ifidx >= 0) {
-		fprintf(stderr, "nl80211: Remove monitor interface\n");
 		nl80211_remove_iface(ctx, ctx->monitor_ifidx);
 		ctx->monitor_ifidx = -1;
 	}

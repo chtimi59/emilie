@@ -17,6 +17,16 @@ void linux_free_socket(int socket) {
 	close(socket);
 }
 
+/* linux_get_if_ifidx
+ * @param ifname interface name (like "wlan0")
+ * @return return -1 if not exists otherwise return interface index
+ */
+int linux_get_if_ifidx(int sock, const char *ifname) {
+    struct ifreq    ifr;
+    strncpy(ifr.ifr_name, ifname, IF_NAMESIZE);
+    return ioctl(sock, SIOCGIFINDEX, &ifr);
+}
+
 /* linux_set_iface_flags
  * set interface up or down 
  * @param ifname interface name (like "wlan0")
