@@ -24,7 +24,12 @@ struct netlink_config {
 
 struct netlink_data * netlink_init(struct netlink_config *cfg);
 void netlink_deinit(struct netlink_data *netlink);
+int netlink_send_oper_ifla(struct netlink_data *netlink, int ifindex, int linkmode, int operstate);
 
-//int netlink_send_oper_ifla(struct netlink_data *netlink, int ifindex, int linkmode, int operstate);
+#ifndef IFLA_LINKMODE
+#define IFLA_LINKMODE 17
+#define IF_OPER_DORMANT 5
+#define IF_OPER_UP 6
+#endif
 
 #endif /* NETLINK_H */

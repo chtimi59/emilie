@@ -101,7 +101,7 @@ struct netlink_data * netlink_init(struct netlink_config *cfg)
 	eloop_register_read_sock(netlink->sock, netlink_receive, netlink, NULL);
 
 	netlink->cfg = cfg;
-
+	
 	return netlink;
 }
 
@@ -122,7 +122,6 @@ void netlink_deinit(struct netlink_data *netlink)
 
 
 // SEND...
-#if 0
 static const char * linkmode_str(int mode)
 {
 	switch (mode) {
@@ -150,7 +149,6 @@ static const char * operstate_str(int state)
 	return "?";
 }
 
-
 int netlink_send_oper_ifla(struct netlink_data *netlink, int ifindex, int linkmode, int operstate)
 {
 	struct {
@@ -162,7 +160,7 @@ int netlink_send_oper_ifla(struct netlink_data *netlink, int ifindex, int linkmo
 	static int nl_seq;
 	ssize_t ret;
 
-	os_memset(&req, 0, sizeof(req));
+	memset(&req, 0, sizeof(req));
 
 	req.hdr.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
 	req.hdr.nlmsg_type = RTM_SETLINK;
@@ -177,35 +175,31 @@ int netlink_send_oper_ifla(struct netlink_data *netlink, int ifindex, int linkmo
 	req.ifinfo.ifi_change = 0;
 
 	if (linkmode != -1) {
-		rta = aliasing_hide_typecast(
-			((char *)&req + NLMSG_ALIGN(req.hdr.nlmsg_len)),
-		struct rtattr);
+		rta = aliasing_hide_typecast(((char *)&req + NLMSG_ALIGN(req.hdr.nlmsg_len)), struct rtattr);
 		rta->rta_type = IFLA_LINKMODE;
 		rta->rta_len = RTA_LENGTH(sizeof(char));
 		*((char *)RTA_DATA(rta)) = linkmode;
 		req.hdr.nlmsg_len += RTA_SPACE(sizeof(char));
 	}
+
 	if (operstate != -1) {
-		rta = aliasing_hide_typecast(
-			((char *)&req + NLMSG_ALIGN(req.hdr.nlmsg_len)),
-		struct rtattr);
+		rta = aliasing_hide_typecast(((char *)&req + NLMSG_ALIGN(req.hdr.nlmsg_len)), struct rtattr);
 		rta->rta_type = IFLA_OPERSTATE;
 		rta->rta_len = RTA_LENGTH(sizeof(char));
 		*((char *)RTA_DATA(rta)) = operstate;
 		req.hdr.nlmsg_len += RTA_SPACE(sizeof(char));
 	}
 
-	wpa_printf(MSG_DEBUG, "netlink: Operstate: ifindex=%d linkmode=%d (%s), operstate=%d (%s)",
-		ifindex, linkmode, linkmode_str(linkmode),
-		operstate, operstate_str(operstate));
+	fprintf(stderr, "netlink: Operstate: ifindex=%d linkmode=%d (%s), operstate=%d (%s)\n",
+			ifindex, linkmode, linkmode_str(linkmode),
+			operstate, operstate_str(operstate));
 
 	ret = send(netlink->sock, &req, req.hdr.nlmsg_len, 0);
 	if (ret < 0) {
-		wpa_printf(MSG_DEBUG, "netlink: Sending operstate IFLA "
-			"failed: %s (assume operstate is not supported)",
+		fprintf(stderr, "netlink: Sending operstate IFLA "
+			"failed: %s (assume operstate is not supported)\n",
 			strerror(errno));
 	}
-
+	
 	return ret < 0 ? -1 : 0;
 }
-#endif

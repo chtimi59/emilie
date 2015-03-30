@@ -155,6 +155,17 @@ static inline void * realloc_array(void *ptr, size_t nmemb, size_t size) {
 void fhexdump(struct _IO_FILE *, const char *title, const u8 *buf, size_t len);
 
 
+/*
+* gcc 4.4 ends up generating strict-aliasing warnings about some very common
+* networking socket uses that do not really result in a real problem and
+* cannot be easily avoided with union-based type-punning due to struct
+* definitions including another struct in system header files. To avoid having
+* to fully disable strict-aliasing warnings, provide a mechanism to hide the
+* typecast from aliasing for now. A cleaner solution will hopefully be found
+* in the future to handle these cases.
+*/
+void * __hide_aliasing_typecast(void *foo);
+#define aliasing_hide_typecast(a,t) (t *) __hide_aliasing_typecast((a))
 
 
 #include "eloop.h"

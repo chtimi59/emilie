@@ -84,6 +84,7 @@ int main(int argc, char **argv)
 	if (netlink_data == NULL)
 		EXIT_ERROR("netlink: init failed");
 
+
 	/* ATTACH NL80211 family */
 	nl80211_cfg.ioctl_sock = ioctl_socket;
 	nl80211_cfg.nl = netlink_data;
@@ -192,6 +193,9 @@ int main(int argc, char **argv)
 	if (nl80211_set_ap(nl80211_data))
 		EXIT_ERROR("error: could'nt set beacon\n");
 
+	if (netlink_send_oper_ifla(netlink_data, nl80211_data->ifindex, -1, IF_OPER_UP))
+		EXIT_ERROR("netlink: init failed");
+
 	/*
 	if (linux_br_get(nl80211_data->brname, nl80211_cfg.ifname, &nl80211_data->br_ifindex) == 0) {
 		fprintf(stderr, "nl80211: '%s' bridge index :%d\n", nl80211_data->brname, nl80211_data->br_ifindex);
@@ -204,6 +208,8 @@ int main(int argc, char **argv)
 			br_added = 1;
 	}
 	*/
+
+
 
 	// RF-KILL (usefull ?)
 	rfkill_data = rfkill_init(&rfkill_cfg);

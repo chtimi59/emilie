@@ -465,6 +465,7 @@ struct ieee80211_mgmt {
 	u8 bssid[6];
 	le16 seq_ctrl;
 	union {
+		// 7
 		struct {
 			le16 auth_alg;
 			le16 auth_transaction;
@@ -472,16 +473,22 @@ struct ieee80211_mgmt {
 			/* possibly followed by Challenge text */
 			u8 variable[0];
 		} STRUCT_PACKED auth;
+		
+		// 3
 		struct {
 			le16 reason_code;
 			u8 variable[0];
 		} STRUCT_PACKED deauth;
+
+		// 5
 		struct {
 			le16 capab_info;
 			le16 listen_interval;
 			/* followed by SSID and Supported rates */
 			u8 variable[0];
 		} STRUCT_PACKED assoc_req;
+		
+		// 7
 		struct {
 			le16 capab_info;
 			le16 status_code;
@@ -489,6 +496,8 @@ struct ieee80211_mgmt {
 			/* followed by Supported rates */
 			u8 variable[0];
 		} STRUCT_PACKED assoc_resp, reassoc_resp;
+
+		// 6
 		struct {
 			le16 capab_info;
 			le16 listen_interval;
@@ -496,10 +505,14 @@ struct ieee80211_mgmt {
 			/* followed by SSID and Supported rates */
 			u8 variable[0];
 		} STRUCT_PACKED reassoc_req;
+
+		// 3
 		struct {
 			le16 reason_code;
 			u8 variable[0];
 		} STRUCT_PACKED disassoc;
+		
+		// 13
 		struct {
 			u8 timestamp[8];
 			le16 beacon_int;
@@ -508,10 +521,14 @@ struct ieee80211_mgmt {
 			 * FH Params, DS Params, CF Params, IBSS Params, TIM */
 			u8 variable[0];
 		} STRUCT_PACKED beacon;
+
+		// 8
 		struct {
 			/* only variable items: SSID, Supported rates */
 			u8 variable[0];
 		} STRUCT_PACKED probe_req;
+
+		// 13
 		struct {
 			u8 timestamp[8];
 			le16 beacon_int;
@@ -520,6 +537,7 @@ struct ieee80211_mgmt {
 			 * FH Params, DS Params, CF Params, IBSS Params */
 			u8 variable[0];
 		} STRUCT_PACKED probe_resp;
+
 		struct {
 			u8 category;
 			union {

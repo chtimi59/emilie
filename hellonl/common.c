@@ -56,3 +56,8 @@ void fhexdump(struct _IO_FILE *fd, const char *title, const u8 *buf, size_t len)
 	}
 	fprintf(fd, "\n");
 }
+
+void * __hide_aliasing_typecast(void *foo)
+{
+	return foo;
+}

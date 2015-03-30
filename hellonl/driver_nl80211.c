@@ -127,14 +127,6 @@ void driver_nl80211_deinit(struct nl80211_data *ctx)
 
 
 
-
-
-
-
-
-
-
-
 int nl80211_init_bss(struct i802_bss *bss) {
 	bss->nl_cb = nl_cb_alloc(NL_CB_DEFAULT);
 	if (!bss->nl_cb)
