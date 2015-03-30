@@ -47,7 +47,6 @@ struct nl80211_config {
 struct nl80211_data * driver_nl80211_init(struct nl80211_config *);
 void driver_nl80211_deinit(struct nl80211_data *);
 
-
 void * nl80211_cmd(struct nl80211_data *ctx, struct nl_msg *msg, int flags, uint8_t cmd);
 int send_and_recv_msgs(struct nl80211_data *ctx, struct nl_msg *msg, int(*valid_handler)(struct nl_msg *, void *), void *valid_data);
 struct nl_msg * nl80211_cmd_msg(struct nl80211_data *ctx, int flags, uint8_t cmd);
@@ -62,5 +61,9 @@ struct i802_bss {
 void nl80211_destroy_bss(struct i802_bss *bss);
 int nl80211_init_bss(struct i802_bss *bss);
 
+
+int nl80211_flush(struct nl80211_data *ctx);
+int nl80211_deauth(struct nl80211_data *ctx, const u8 *addr, int reason);
+int nl80211_send_mlme(struct nl80211_data *ctx, const u8 *data, size_t data_len, int noack);
 
 #endif /* DRIVER_NL80211_H */

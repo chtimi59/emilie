@@ -1,0 +1,1 @@
+//void mngt_event(struct nl80211_data* ctx, union wpa_event_data event);

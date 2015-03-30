@@ -76,9 +76,12 @@
     <ClCompile Include="driver_nl80211_monitor.c" />
     <ClCompile Include="driver_nl80211_rts.c" />
     <ClCompile Include="eloop.c" />
+    <ClCompile Include="ieee802_11_common.c" />
     <ClCompile Include="ioctl.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="mngt.c" />
     <ClCompile Include="netlink.c" />
+    <ClCompile Include="radiotap.c" />
     <ClCompile Include="rfkill.c" />
   </ItemGroup>
   <ItemGroup>
@@ -92,12 +95,16 @@
     <ClInclude Include="driver_nl80211_monitor.h" />
     <ClInclude Include="driver_nl80211_rts.h" />
     <ClInclude Include="eloop.h" />
+    <ClInclude Include="ieee802_11_common.h" />
     <ClInclude Include="ieee802_11_defs.h" />
     <ClInclude Include="ioctl.h" />
     <ClInclude Include="list.h" />
+    <ClInclude Include="mngt.h" />
     <ClInclude Include="netlink.h" />
     <ClInclude Include="nl80211.h" />
     <ClInclude Include="priv_netlink.h" />
+    <ClInclude Include="radiotap.h" />
+    <ClInclude Include="radiotap_iter.h" />
     <ClInclude Include="rfkill.h" />
   </ItemGroup>
   <ItemGroup>

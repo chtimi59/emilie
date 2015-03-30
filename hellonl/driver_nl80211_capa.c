@@ -223,12 +223,10 @@ int nl80211_feed_capa(struct nl80211_data *ctx)
 	}
 
 	if (nla_put_flag(msg, NL80211_ATTR_SPLIT_WIPHY_DUMP)) {
-        printf("test2\n");
 		return -1;
 	}
 
 	if (send_and_recv_msgs(ctx, msg, wiphy_info_handler, info)) {
-        printf("test3\n");
 		return -1;
 	}
 

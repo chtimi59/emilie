@@ -26,10 +26,18 @@ struct netlink_data * netlink_init(struct netlink_config *cfg);
 void netlink_deinit(struct netlink_data *netlink);
 int netlink_send_oper_ifla(struct netlink_data *netlink, int ifindex, int linkmode, int operstate);
 
+#ifndef IFF_LOWER_UP
+#define IFF_LOWER_UP   0x10000         /* driver signals L1 up         */
+#endif
+#ifndef IFF_DORMANT
+#define IFF_DORMANT    0x20000         /* driver signals dormant       */
+#endif
 #ifndef IFLA_LINKMODE
 #define IFLA_LINKMODE 17
 #define IF_OPER_DORMANT 5
 #define IF_OPER_UP 6
 #endif
+void debugPrint(struct ifinfomsg *ifi, u8 *buf, size_t len);
+
 
 #endif /* NETLINK_H */
