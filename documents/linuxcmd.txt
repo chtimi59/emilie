@@ -16,7 +16,15 @@ sudo apt-get install <pkname>
 |           W I R E L E S S
 |
 --------------------------------------
-
+# show wireless capabilities
+IW list, example
+  IBSS
+  managed
+  AP
+  AP/VLAN
+  monitor
+  
+				 
 # Show all interface
 sudo ifconfig -a
 
