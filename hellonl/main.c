@@ -325,10 +325,14 @@ int main(int argc, char **argv)
 exit_label:
     fprintf(stderr, (err<0) ? "failed\n" : "success\n");
 
-    if (nl80211_data->monitor_ifidx >= 0) nl80211_remove_monitor_interface(nl80211_data);
+    if (nl80211_data->monitor_ifidx >= 0)
+        nl80211_remove_monitor_interface(nl80211_data);
+    
     //nl80211_destroy_bss(&bss);
 
     rfkill_deinit(rfkill_data);
+    nl80211_unset_ap(nl80211_data);
+
     driver_nl80211_deinit(nl80211_data);
     netlink_deinit(netlink_data);
     if (ioctl_socket!=-1) linux_free_socket(ioctl_socket);
