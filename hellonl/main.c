@@ -22,6 +22,7 @@
 #include "netlink.h"
 #include "driver_nl80211.h"
 #include "ioctl.h"
+#include "mngt.h"
 
 #include "ieee802_11_defs.h"
 
@@ -76,7 +77,7 @@ void OnNetlink_event_dellink(void *ctx, struct ifinfomsg *ifi, u8 *buf, size_t l
 int main(int argc, char **argv)
 {
     int err = 0;
-    int ioctl_socket;
+    int ioctl_socket = -1;
 
     struct rfkill_config  rfkill_cfg = { 0 };
     struct rfkill_data    *rfkill_data = NULL;
@@ -131,35 +132,73 @@ int main(int argc, char **argv)
         EXIT_ERROR("error: no wlan interface found (tested: wlan0 -> wlan5)\n");
     } while(0);
     
-    // set interface down if exists (seems safe for configuration)
-#if 0
-    fprintf(stderr, "set interface %s down\n", nl80211_cfg.ifname);
-    if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false))
-        EXIT_ERROR("error: could'nt set interface down\n");
-#endif
 
-    /** SPECIAL NETLINK, NL80211 FAMILY */
+
+    /* NETLINK
+
+    http://www.carisma.slowglass.com/~tgr/libnl/doc/core.html
+    Netlink socket family is a Linux kernel interface used for inter-process communication (IPC) between the kernel and userspace processes,
+    as well as between user processes in a way similar to the Unix domain sockets.
+    However, unlike INET sockets, Netlink communication cannot traverse host boundaries because Netlink processes addresses by process identifiers (PIDs),
+    which are inherently local.
+
+    A non-exhaustive list of the supported protocol entries follows:
+    NETLINK_ROUTE: provide routing an link information
+    NETLINK_FIREWALL
+    NETLINK_NFLOG
+    NETLINK_ARPD
+    NETLINK_AUDIT
+    [...]
+    and User-defined Netlink protocol
+    */
+    
+    /** NETLINK : NL80211 */
+    fprintf(stderr, "\n** NETLINK : NL80211 init **\n");
     nl80211_data = driver_nl80211_init(&nl80211_cfg);
     if (nl80211_data == NULL)
         EXIT_ERROR("nl80211: init failed");    
+    fprintf(stderr, "nl80211: init success\n");
 
-    /** CREATE NETLINK SOCKET
-     * Netlink socket family is a Linux kernel interface used for inter-process communication (IPC)
-     * between the kernel and userspace processes, 
-     * PROTOCOL USED: NETLINK_ROUTE / LINK FAMILIY
-     */
+    if (nl80211_get_ifmode(nl80211_data, &nl80211_data->mode))
+        EXIT_ERROR("nl80211: could'nt find phy mode\n");    
+
+    /** NETLINK : NETLINK_ROUTE / LINK FAMILIY (used to change link operation state) */
+    fprintf(stderr, "\n** NETLINK : NETLINK_ROUTE init **\n");
     netlink_cfg.ctx = nl80211_data;
     netlink_cfg.newlink_cb = OnNetlink_event_newlink;
     netlink_cfg.dellink_cb = OnNetlink_event_dellink;
     netlink_data = netlink_init(&netlink_cfg);
     if (netlink_data == NULL)
         EXIT_ERROR("netlink: init failed");
+    nl80211_cfg.nl = netlink_data; // share reference
+    fprintf(stderr, "netlink: init success\n\n");
 
-    nl80211_cfg.nl = netlink_data;
+
+    // Ask nl80211 to create a monitor interface and create a socket on it
+    // Monitor is used for RX and TX
+    memset(nl80211_data->monitor_name, 0, IFNAMSIZ);
+    snprintf(nl80211_data->monitor_name, IFNAMSIZ, "mon.%s", nl80211_data->ifname);
+    nl80211_data->monitor_ifidx = linux_get_if_ifidx(ioctl_socket, nl80211_data->monitor_name);
+    if (nl80211_create_monitor_interface(nl80211_data))
+        EXIT_ERROR("nl80211: Monitor interface error\n");
+
+
+
+
 
 
 #if 1
-    /* Get Physical interface associate to nl80211  +Some Capabilitlies */
+    //Get wlan0 interface mac address
+    if (linux_get_ifhwaddr(ioctl_socket, nl80211_cfg.ifname, nl80211_data->macaddr))
+        EXIT_ERROR("error: could'nt get mac address\n");
+    fprintf(stderr, "nl80211: mac address %02x:%02x:%02x:%02x:%02x:%02x\n", 
+        nl80211_data->macaddr[0], nl80211_data->macaddr[1], nl80211_data->macaddr[2],
+        nl80211_data->macaddr[3], nl80211_data->macaddr[4], nl80211_data->macaddr[5]);
+#endif
+
+
+#if 1
+    /* Get Physical interface associated to nl80211  +Some Capabilitlies */
     if (nl80211_feed_capa(nl80211_data))
         EXIT_ERROR("nl80211: get capabilities failed\n");
     if (nl80211_get_wiphy_index(nl80211_data, &nl80211_data->phyindex))
@@ -190,11 +229,18 @@ int main(int argc, char **argv)
 }
 #endif
 
+
+#if 1
     // Change ifmode if needed
     if (nl80211_get_ifmode(nl80211_data, &nl80211_data->mode))
         EXIT_ERROR("nl80211: could'nt find phy mode\n");    
     if (nl80211_data->mode != NL80211_IFTYPE_AP)
     {
+        // safe for reconfiguration
+        fprintf(stderr, "set interface %s down\n", nl80211_cfg.ifname);
+        if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, false))
+            EXIT_ERROR("error: could'nt set interface down\n");
+
         // change mode        
         fprintf(stderr, "nl80211: change mode from %d to %d\n", nl80211_data->mode, NL80211_IFTYPE_AP);
         if (nl80211_set_ifmode(nl80211_data, NL80211_IFTYPE_AP))
@@ -206,41 +252,35 @@ int main(int argc, char **argv)
         EXIT_ERROR("nl80211: can't use wireless device as an AP\n");
     fprintf(stderr, "nl80211: phy mode %d\n", nl80211_data->mode);
 
-
-    //get interface mac address
-    if (linux_get_ifhwaddr(ioctl_socket, nl80211_cfg.ifname, nl80211_data->macaddr))
-        EXIT_ERROR("error: could'nt get mac address\n");
-    fprintf(stderr, "nl80211: mac address %02x:%02x:%02x:%02x:%02x:%02x\n", 
-        nl80211_data->macaddr[0], nl80211_data->macaddr[1], nl80211_data->macaddr[2],
-        nl80211_data->macaddr[3], nl80211_data->macaddr[4], nl80211_data->macaddr[5]);
-
-    // Add monitor interface
-    memset(nl80211_data->monitor_name, 0, IFNAMSIZ);
-    snprintf(nl80211_data->monitor_name, IFNAMSIZ, "mon.%s", nl80211_data->ifname);
-    nl80211_data->monitor_ifidx = linux_get_if_ifidx(ioctl_socket, nl80211_data->monitor_name);
-    if (nl80211_create_monitor_interface(nl80211_data))
-        EXIT_ERROR("nl80211: Monitor interface error\n");
-
-
-    // Set interface up
+    // Set wlan interface up
     fprintf(stderr, "set interface %s up\n", nl80211_cfg.ifname);
     if (linux_set_iface_flags(ioctl_socket, nl80211_cfg.ifname, true))
         EXIT_ERROR("error: could'nt set interface up\n");
+#endif
 
+
+#if 1
     // Set frequency
     int freq = 2437;
     fprintf(stderr, "nl80211: set frequency %dMHZ\n", freq);
     if (nl80211_set_channel(nl80211_data, freq))
         EXIT_ERROR("error: could'nt set frequency\n");
-
-#if 1 // flush stations
-    nl80211_flush(nl80211_data);
-    nl80211_deauth(nl80211_data, broadcast_ether_addr, WLAN_REASON_DEAUTH_LEAVING);
 #endif
 
+
+#if 1
+    // flush stations
+    nl80211_flush(nl80211_data);
+    send_deauth(nl80211_data, broadcast_ether_addr, WLAN_REASON_DEAUTH_LEAVING);
+#endif
+
+
+#if 1
     // Set Beacons
     if (nl80211_set_ap(nl80211_data))
         EXIT_ERROR("error: could'nt set beacon\n");
+#endif
+
 
     /*
     if (linux_br_get(nl80211_data->brname, nl80211_cfg.ifname, &nl80211_data->br_ifindex) == 0) {
@@ -269,7 +309,7 @@ int main(int argc, char **argv)
 
 
 
-    // NETLINK UP !
+    // NETLINK:  LINK UP !
     if (netlink_send_oper_ifla(netlink_data, nl80211_data->ifindex, -1, IF_OPER_UP))
         EXIT_ERROR("netlink: init failed");
 
@@ -285,13 +325,13 @@ int main(int argc, char **argv)
 exit_label:
     fprintf(stderr, (err<0) ? "failed\n" : "success\n");
 
-    if (nl80211_data) nl80211_remove_monitor_interface(nl80211_data);
+    if (nl80211_data->monitor_ifidx >= 0) nl80211_remove_monitor_interface(nl80211_data);
     //nl80211_destroy_bss(&bss);
 
     rfkill_deinit(rfkill_data);
     driver_nl80211_deinit(nl80211_data);
     netlink_deinit(netlink_data);
-    linux_free_socket(ioctl_socket);
+    if (ioctl_socket!=-1) linux_free_socket(ioctl_socket);
 
     fprintf(stderr, "bye\n");
     return err;

@@ -4,6 +4,6 @@
 int nl80211_create_monitor_interface(struct nl80211_data* ctx);
 void nl80211_remove_monitor_interface(struct nl80211_data* ctx);
 
-int nl80211_send_monitor(struct nl80211_data* ctx, const void *data, size_t len, int noack);
+int monitor_tx(struct nl80211_data* ctx, const void *data, size_t len, int noack);
 
 #endif

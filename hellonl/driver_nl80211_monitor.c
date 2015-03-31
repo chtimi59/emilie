@@ -478,7 +478,9 @@ void nl80211_remove_monitor_interface(struct nl80211_data* ctx)
            (a)[0] = ((u16) (val)) & 0xff;  \
       } while (0)
 
-int nl80211_send_monitor(struct nl80211_data* ctx, const void *data, size_t len, int noack)
+
+
+int monitor_tx(struct nl80211_data* ctx, const void *data, size_t len, int noack)
 {
     __u8 rtap_hdr[] = {
         0x00, 0x00, /* radiotap version */
@@ -521,6 +523,15 @@ int nl80211_send_monitor(struct nl80211_data* ctx, const void *data, size_t len,
         return -1;
     }
 
+
+    // DEBUG
+    {
+        struct ieee80211_mgmt *mgmt = (struct ieee80211_mgmt *) data;
+        u16 fc = le_to_host16(mgmt->frame_control);
+        fprintf(stderr, "monitor: send_mlme - da=%02x:%02x:%02x:%02x:%02x:%02x noack=%d fc=0x%x (%s)\n",
+               mgmt->da[0],mgmt->da[1],mgmt->da[2],mgmt->da[3],mgmt->da[4],mgmt->da[5],
+               noack, fc, fc2str(fc));
+    }
 
     res = sendmsg(ctx->monitor_sock, &msg, 0);
     if (res < 0) {

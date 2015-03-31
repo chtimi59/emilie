@@ -46,10 +46,10 @@ void wpa_driver_nl80211_event_receive(int sock, void *eloop_ctx, void *handle) {
 }
 
 
-
 struct nl80211_data * driver_nl80211_init(struct nl80211_config *cfg)
 {
     struct nl80211_data *ctx;
+    int ret;
 
     ctx = zalloc(sizeof(struct nl80211_data));
     if (ctx == NULL)
@@ -67,28 +67,36 @@ struct nl80211_data * driver_nl80211_init(struct nl80211_config *cfg)
 
 
 
-    // NETLINK CALLBACK
+
+
+    /* NETLINK CALLBACK :
+                                                                        
+                   PROCESS X            PROCESS Y            PROCESS Z  
+    user            PID55                PID56                PID57     
+    space             ^                    ^                   ^        
+                      |                    |                   |        (nl_cb)
+    netlink         Queue                Queue               Queue      
+                      |                    |                   |        
+                   -------------------------------         ---------    
+    kernel         |         SUBSYSTEM A         |         |SUBSY N|    
+                   -------------------------------         ---------    
+                                                                        
+    */
     ctx->nl_cb = nl_cb_alloc(NL_CB_DEFAULT);
     if (ctx->nl_cb == NULL) {
         fprintf(stderr,  "nl80211: Failed to allocate netlink callbacks\n");
         return NULL;
     }
     nl_cb_set(ctx->nl_cb, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, no_seq_check, NULL);
-    nl_cb_set(ctx->nl_cb, NL_CB_VALID, NL_CB_CUSTOM, process_global_event, ctx);
+    nl_cb_set(ctx->nl_cb, NL_CB_VALID, NL_CB_CUSTOM,     process_global_event, ctx);
 
 
-    // "nl"
+    // Allocate new socket on generic netlink with custom callbacks
     ctx->nl       = nl_create_handle(ctx->nl_cb, "nl");
     if (ctx->nl == NULL)
         goto err;
 
-    // "event"
-    ctx->nl_event = nl_create_handle(ctx->nl_cb, "event");
-    if (ctx->nl_event == NULL)
-        goto err;
-
-
-    // find "nl80211" familly in "nl"
+    // Find "nl80211" netlink familly id
     ctx->nl80211_id = genl_ctrl_resolve(ctx->nl, "nl80211");
     if (ctx->nl80211_id < 0) {
         fprintf(stderr,  "nl80211: 'nl80211' generic netlink not found\n");
@@ -97,20 +105,33 @@ struct nl80211_data * driver_nl80211_init(struct nl80211_config *cfg)
         fprintf(stderr, "nl80211: 'nl80211' familly found at %d\n", ctx->nl80211_id);
     }
 
-    
-    
-    /*ret = nl_get_multicast_id(global, "nl80211", "mlme");
-    if (ret >= 0)
-        ret = nl_socket_add_membership(global->nl_event, ret);
-    if (ret < 0) {
-        fprintf(stderr,  "nl80211: Could not add multicast "
-            "membership for mlme events: %d (%s)",
-            ret, strerror(-ret));
-        goto err;
-    }*/
 
-    
+    // Find "nlctrl" netlink familly
+    ctx->nlctrl_id = genl_ctrl_resolve(ctx->nl, "nlctrl");
+    if (ctx->nlctrl_id < 0) {
+        fprintf(stderr,  "nlctrl: 'nlctrl' generic netlink not found\n");
+        goto err;
+    } else {
+        fprintf(stderr, "nlctrl: 'nlctrl' familly found at %d\n", ctx->nlctrl_id);
+    }
+
+
+
+    // Allocate another new socket on generic netlink with custom callbacks (used for specific multicast events)
+    ctx->nl_event = nl_create_handle(ctx->nl_cb, "event");
+    if (ctx->nl_event == NULL)
+        goto err;
+    // find mlme group in "nl80211" family
+    ret = nl_get_multicast_id(ctx, "nl80211", "mlme");
+    if (ret >= 0)
+        fprintf(stderr,  "nl80211: add multicast membership for 'mlme' group (=%d)\n", ret);
+        ret = nl_socket_add_membership(ctx->nl_event, ret);
+    if (ret < 0) {
+        fprintf(stderr,  "nl80211: Could not add multicast membership for mlme group: %d (%s)\n", ret, strerror(-ret));
+        goto err;
+    }
     nl80211_register_eloop_read(&ctx->nl_event, wpa_driver_nl80211_event_receive, ctx->nl_cb);
+
 
     return ctx;
 
@@ -156,6 +177,75 @@ void nl80211_destroy_bss(struct i802_bss *bss) {
 }
 
 
+
+
+
+
+
+
+
+struct family_data {
+    const char *group;
+    int id;
+};
+
+
+static int family_handler(struct nl_msg *msg, void *arg)
+{
+    struct family_data *res = arg;
+    struct nlattr *tb[CTRL_ATTR_MAX + 1];
+    struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+    struct nlattr *mcgrp;
+    int i;
+
+    nla_parse(tb, CTRL_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
+    if (!tb[CTRL_ATTR_MCAST_GROUPS])
+        return NL_SKIP;
+
+    nla_for_each_nested(mcgrp, tb[CTRL_ATTR_MCAST_GROUPS], i)
+    {
+        struct nlattr *tb2[CTRL_ATTR_MCAST_GRP_MAX + 1];
+        nla_parse(tb2, CTRL_ATTR_MCAST_GRP_MAX, nla_data(mcgrp), nla_len(mcgrp), NULL);
+        if (!tb2[CTRL_ATTR_MCAST_GRP_NAME] ||
+            !tb2[CTRL_ATTR_MCAST_GRP_ID] ||
+            strncmp(nla_data(tb2[CTRL_ATTR_MCAST_GRP_NAME]), res->group, nla_len(tb2[CTRL_ATTR_MCAST_GRP_NAME])) != 0)
+            continue;
+        res->id = nla_get_u32(tb2[CTRL_ATTR_MCAST_GRP_ID]);
+        break; 
+    };
+
+    return NL_SKIP;
+}
+
+int nl_get_multicast_id(struct nl80211_data *ctx, const char *family, const char *group)
+{
+    struct nl_msg *msg;
+    int ret;
+    struct family_data res = { group, -ENOENT };
+
+    msg = nlmsg_alloc();
+    if (!msg)
+        return -ENOMEM;
+    
+    // Probe a family
+    if (!genlmsg_put(msg, 0, 0, ctx->nlctrl_id, 0, 0, CTRL_CMD_GETFAMILY, 0))
+        goto failed;
+    if (nla_put_string(msg, CTRL_ATTR_FAMILY_NAME, family))
+        goto failed;
+
+    ret = send_and_recv_msgs(ctx, msg, family_handler, &res);
+    if (ret == 0) ret = res.id;
+    return ret;
+
+failed:
+    nlmsg_free(msg);
+    return -1;
+}
+
+
+
+
+
 int nl80211_flush(struct nl80211_data *ctx)
 {
     fprintf(stderr, "nl80211: flush -> DEL_STATION %s (all)\n", ctx->ifname);
@@ -181,30 +271,6 @@ fail:
 }
 
 
-
-int nl80211_deauth(struct nl80211_data *ctx, const u8 *addr, int reason) {
-    struct ieee80211_mgmt mgmt;
-    memset(&mgmt, 0, sizeof(mgmt));
-    mgmt.frame_control = IEEE80211_FC(WLAN_FC_TYPE_MGMT,WLAN_FC_STYPE_DEAUTH);
-    memcpy(mgmt.da, addr, ETH_ALEN);
-    memcpy(mgmt.sa, ctx->macaddr, ETH_ALEN);
-    memcpy(mgmt.bssid, ctx->macaddr, ETH_ALEN);
-    mgmt.u.deauth.reason_code = host_to_le16(reason);
-    return nl80211_send_mlme(ctx, (u8 *) &mgmt, IEEE80211_HDRLEN + sizeof(mgmt.u.deauth), 0);
-}
-
-
-int nl80211_send_mlme(struct nl80211_data *ctx, const u8 *data, size_t len, int noack)
-{
-    struct ieee80211_mgmt *mgmt = (struct ieee80211_mgmt *) data;
-    u16 fc = le_to_host16(mgmt->frame_control);
-
-    fprintf(stderr, "nl80211: send_mlme - da=%02x:%02x:%02x:%02x:%02x:%02x noack=%d fc=0x%x (%s)\n",
-           mgmt->da[0],mgmt->da[1],mgmt->da[2],mgmt->da[3],mgmt->da[4],mgmt->da[5],
-           noack, fc, fc2str(fc));
-
-    return nl80211_send_monitor(ctx, data, len, noack);
-}
 
 
 

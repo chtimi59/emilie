@@ -17,7 +17,8 @@ struct nl80211_data {
 	struct nl_handle *nl;
 	struct nl_handle *nl_event;
 	
-	int nl80211_id;				 // netlink familly
+	int nl80211_id;				 // netlink nl80211 familly
+    int nlctrl_id;				 // netlink nlctrl familly
 	char ifname[IFNAMSIZ];		 // wifi interface name (ex: eth0)
 	int  ifindex;				 // wifi index
 	
@@ -46,6 +47,8 @@ struct nl80211_config {
 
 struct nl80211_data * driver_nl80211_init(struct nl80211_config *);
 void driver_nl80211_deinit(struct nl80211_data *);
+
+int nl_get_multicast_id(struct nl80211_data *ctx, const char *family, const char *group);
 
 void * nl80211_cmd(struct nl80211_data *ctx, struct nl_msg *msg, int flags, uint8_t cmd);
 int send_and_recv_msgs(struct nl80211_data *ctx, struct nl_msg *msg, int(*valid_handler)(struct nl_msg *, void *), void *valid_data);

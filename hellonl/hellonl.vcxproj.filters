@@ -17,32 +17,35 @@
     <Filter Include="ioctl">
       <UniqueIdentifier>{c74447d8-a8a8-41a1-aa95-e9a29224e66b}</UniqueIdentifier>
     </Filter>
-    <Filter Include="netlink">
-      <UniqueIdentifier>{01829868-c4d8-4413-b946-10ac7e54b838}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="netlink\capa">
-      <UniqueIdentifier>{edf621e5-d8fb-437b-bd41-b151da554678}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="netlink\rts">
-      <UniqueIdentifier>{11f5fae4-2030-440b-b2c8-df09dbda58c9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="netlink\interfacce">
-      <UniqueIdentifier>{103f58b6-7d26-4277-8f59-57611b53231d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="netlink\monitor">
-      <UniqueIdentifier>{714c3dbd-490d-4211-a1f8-c5985dc5b2fa}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="netlink\freq">
-      <UniqueIdentifier>{fefab6f5-24d3-4ee7-ab33-d59e1549d262}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="netlink\frag">
-      <UniqueIdentifier>{ffb56e3e-298b-40bd-8c95-396e807e2ffd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="netlink\beacon">
-      <UniqueIdentifier>{7800108e-c84a-4fcc-8ef1-ce8994bbb765}</UniqueIdentifier>
-    </Filter>
     <Filter Include="mngt">
       <UniqueIdentifier>{ca1c4409-275e-40c2-9674-d3489e6fabf9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_route">
+      <UniqueIdentifier>{2e4a9733-41d5-47d7-a0a9-34789da788f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_nl80211">
+      <UniqueIdentifier>{01829868-c4d8-4413-b946-10ac7e54b838}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_nl80211\capa">
+      <UniqueIdentifier>{edf621e5-d8fb-437b-bd41-b151da554678}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_nl80211\rts">
+      <UniqueIdentifier>{11f5fae4-2030-440b-b2c8-df09dbda58c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_nl80211\interfacce">
+      <UniqueIdentifier>{103f58b6-7d26-4277-8f59-57611b53231d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_nl80211\monitor">
+      <UniqueIdentifier>{714c3dbd-490d-4211-a1f8-c5985dc5b2fa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_nl80211\freq">
+      <UniqueIdentifier>{fefab6f5-24d3-4ee7-ab33-d59e1549d262}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_nl80211\frag">
+      <UniqueIdentifier>{ffb56e3e-298b-40bd-8c95-396e807e2ffd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="netlink_nl80211\beacon">
+      <UniqueIdentifier>{7800108e-c84a-4fcc-8ef1-ce8994bbb765}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -55,51 +58,51 @@
     <ClCompile Include="ioctl.c">
       <Filter>ioctl</Filter>
     </ClCompile>
-    <ClCompile Include="netlink.c">
-      <Filter>netlink</Filter>
-    </ClCompile>
     <ClCompile Include="driver_helper.cxx">
-      <Filter>netlink</Filter>
+      <Filter>netlink_nl80211</Filter>
     </ClCompile>
     <ClCompile Include="driver_nl80211.c">
-      <Filter>netlink</Filter>
+      <Filter>netlink_nl80211</Filter>
     </ClCompile>
     <ClCompile Include="rfkill.c">
       <Filter>rfkill</Filter>
     </ClCompile>
     <ClCompile Include="main.c" />
     <ClCompile Include="driver_nl80211_cmd.c">
-      <Filter>netlink</Filter>
+      <Filter>netlink_nl80211</Filter>
     </ClCompile>
     <ClCompile Include="driver_nl80211_capa.c">
-      <Filter>netlink\capa</Filter>
+      <Filter>netlink_nl80211\capa</Filter>
     </ClCompile>
     <ClCompile Include="driver_nl80211_rts.c">
-      <Filter>netlink\rts</Filter>
+      <Filter>netlink_nl80211\rts</Filter>
     </ClCompile>
     <ClCompile Include="driver_nl80211_interface.c">
-      <Filter>netlink\interfacce</Filter>
+      <Filter>netlink_nl80211\interfacce</Filter>
     </ClCompile>
     <ClCompile Include="driver_nl80211_monitor.c">
-      <Filter>netlink\monitor</Filter>
+      <Filter>netlink_nl80211\monitor</Filter>
     </ClCompile>
     <ClCompile Include="driver_nl80211_freq.c">
-      <Filter>netlink\freq</Filter>
+      <Filter>netlink_nl80211\freq</Filter>
     </ClCompile>
     <ClCompile Include="driver_nl80211_frag.c">
-      <Filter>netlink\frag</Filter>
+      <Filter>netlink_nl80211\frag</Filter>
     </ClCompile>
     <ClCompile Include="driver_nl80211_beacon.c">
-      <Filter>netlink\beacon</Filter>
+      <Filter>netlink_nl80211\beacon</Filter>
     </ClCompile>
     <ClCompile Include="radiotap.c">
-      <Filter>netlink\monitor</Filter>
+      <Filter>netlink_nl80211\monitor</Filter>
     </ClCompile>
     <ClCompile Include="mngt.c">
       <Filter>mngt</Filter>
     </ClCompile>
     <ClCompile Include="ieee802_11_common.c">
       <Filter>common</Filter>
+    </ClCompile>
+    <ClCompile Include="netlink.c">
+      <Filter>netlink_route</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -118,44 +121,38 @@
     <ClInclude Include="ioctl.h">
       <Filter>ioctl</Filter>
     </ClInclude>
-    <ClInclude Include="netlink.h">
-      <Filter>netlink</Filter>
-    </ClInclude>
-    <ClInclude Include="priv_netlink.h">
-      <Filter>netlink</Filter>
-    </ClInclude>
     <ClInclude Include="driver_nl80211.h">
-      <Filter>netlink</Filter>
+      <Filter>netlink_nl80211</Filter>
     </ClInclude>
     <ClInclude Include="rfkill.h">
       <Filter>rfkill</Filter>
     </ClInclude>
     <ClInclude Include="driver_nl80211_capa.h">
-      <Filter>netlink\capa</Filter>
+      <Filter>netlink_nl80211\capa</Filter>
     </ClInclude>
     <ClInclude Include="driver_nl80211_rts.h">
-      <Filter>netlink\rts</Filter>
+      <Filter>netlink_nl80211\rts</Filter>
     </ClInclude>
     <ClInclude Include="driver_nl80211_interface.h">
-      <Filter>netlink\interfacce</Filter>
+      <Filter>netlink_nl80211\interfacce</Filter>
     </ClInclude>
     <ClInclude Include="driver_nl80211_monitor.h">
-      <Filter>netlink\monitor</Filter>
+      <Filter>netlink_nl80211\monitor</Filter>
     </ClInclude>
     <ClInclude Include="driver_nl80211_freq.h">
-      <Filter>netlink\freq</Filter>
+      <Filter>netlink_nl80211\freq</Filter>
     </ClInclude>
     <ClInclude Include="driver_nl80211_frag.h">
-      <Filter>netlink\frag</Filter>
+      <Filter>netlink_nl80211\frag</Filter>
     </ClInclude>
     <ClInclude Include="driver_nl80211_beacon.h">
-      <Filter>netlink\beacon</Filter>
+      <Filter>netlink_nl80211\beacon</Filter>
     </ClInclude>
     <ClInclude Include="radiotap_iter.h">
-      <Filter>netlink\monitor</Filter>
+      <Filter>netlink_nl80211\monitor</Filter>
     </ClInclude>
     <ClInclude Include="radiotap.h">
-      <Filter>netlink\monitor</Filter>
+      <Filter>netlink_nl80211\monitor</Filter>
     </ClInclude>
     <ClInclude Include="mngt.h">
       <Filter>mngt</Filter>
@@ -165,6 +162,12 @@
     </ClInclude>
     <ClInclude Include="ieee802_11_defs.h">
       <Filter>common</Filter>
+    </ClInclude>
+    <ClInclude Include="netlink.h">
+      <Filter>netlink_route</Filter>
+    </ClInclude>
+    <ClInclude Include="priv_netlink.h">
+      <Filter>netlink_route</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
