@@ -50,7 +50,7 @@ static void handle_tx_frame(void *ctx, u8 *buf, size_t len, int ok)
     event.tx_status.data_len = len;
     event.tx_status.ack = ok;
     wpa_supplicant_event(ctx, EVENT_TX_STATUS, &event);*/
-    fprintf(stderr, "TX_STATUS\n");
+    fprintf(stderr, "TX_STATUS %d\n", ok);
 }
 
 static void handle_rx_frame(struct nl80211_data* ctx, u8 *buf, size_t len, int datarate, int ssi_signal)
@@ -60,22 +60,31 @@ static void handle_rx_frame(struct nl80211_data* ctx, u8 *buf, size_t len, int d
     hdr = (struct ieee80211_hdr *) buf;
     fc = le_to_host16(hdr->frame_control);
 
+    if (len<IEEE80211_HDRLEN) {
+        fprintf(stderr,"malformed packet\n");
+        return;
+    }
+
     switch (WLAN_FC_GET_TYPE(fc))
     {
         case WLAN_FC_TYPE_MGMT:
         {
-                const u8 *bssid = get_hdr_bssid(hdr, len);
-                if (memcmp(bssid,ctx->macaddr,6)==0) {
-                    fprintf(stderr,"RECEIVED 802.11 MNGT FRAME %s\n", fc2str(fc));
-                }
-                if (memcmp(bssid,broadcast_ether_addr,6)==0) {
-                    fprintf(stderr,"RECEIVED 802.11 MNGT FRAME (BROADCAST) %s\n",fc2str(fc));
-                    /*fprintf(stderr, "%02x:%02x:%02x:%02x:%02x:%02x\n", 
-                        bssid[0], bssid[1], bssid[2],
-                        bssid[3], bssid[4], bssid[5]);*/
-                };
-    }
+            const u8 *bssid = get_hdr_bssid(hdr, len);
+            if (memcmp(bssid,ctx->macaddr,6)==0) {
+                //fprintf(stderr,"RECEIVED 802.11 MNGT FRAME %s\n", fc2str(fc));
+                mngt_rx_handle(ctx, buf, len, datarate, ssi_signal);
+                break;
+            }
+
+            if (memcmp(bssid,broadcast_ether_addr,6)==0) {
+                //fprintf(stderr,"RECEIVED 802.11 MNGT FRAME (BROADCAST) %s\n",fc2str(fc));
+                /*fprintf(stderr, "%02x:%02x:%02x:%02x:%02x:%02x\n", 
+                    bssid[0], bssid[1], bssid[2],
+                    bssid[3], bssid[4], bssid[5]);*/
+                break;
+            };
             break;
+        }
 
         case WLAN_FC_TYPE_CTRL:
             /* can only get here with PS-Poll frames */
