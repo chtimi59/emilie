@@ -77,7 +77,7 @@ static void handle_rx_frame(struct nl80211_data* ctx, u8 *buf, size_t len, int d
             }
 
             if (memcmp(bssid,broadcast_ether_addr,6)==0) {
-                //fprintf(stderr,"RECEIVED 802.11 MNGT FRAME (BROADCAST) %s\n",fc2str(fc));
+               // fprintf(stderr,"RECEIVED 802.11 MNGT FRAME (BROADCAST) %s\n",fc2str(fc));
                 /*fprintf(stderr, "%02x:%02x:%02x:%02x:%02x:%02x\n", 
                     bssid[0], bssid[1], bssid[2],
                     bssid[3], bssid[4], bssid[5]);*/

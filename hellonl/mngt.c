@@ -64,47 +64,62 @@ int send_deauth(struct nl80211_data *ctx, const u8 *addr, int reason) {
 
 
 
-static char* hostapd_eid_ssid(u8** buff) {
+static int hostapd_eid_ssid(u8* buff, char* ssid, int max) {
     int i,j=0;
-    char ssid[255] = { 0 };
-    u8* pos = *buff;
-    u8 eid = *pos; pos++;
-    u8 len = *pos; pos++;
-    if (eid!=WLAN_EID_SSID) return ssid;
+    u8 eid = buff[0];
+    u8 len = buff[1];
+    if (WLAN_EID_SSID!=eid) return 0;
     for(i=0; i<len; i++) {
-        if (j<253) ssid[j++] = pos[i];
+        if (j<(max-1)) ssid[j++] = buff[i+2];
     }
     ssid[j] = '\0';
-    *buff = pos;
-    return (char*)ssid;
+    return j;
 }
 
-struct rates_t {
+
+typedef struct {
     int value;
     int isBasic;
-}
-static struct rates_t* hostapd_eid_supp_rates(u8** buff, int* out_sz) {
+} rates_t;
+
+static int hostapd_eid_supp_rates(u8* buff, rates_t* rates, int max) {
     int i,j=0;
-    int rates[255] = { 0 };
-    u8* pos = *buff;
-    u8 eid = *pos; pos++;
-    u8 len = *pos; pos++;
-    if (eid!=WLAN_EID_SUPP_RATES) { return (int*)rates; *out_sz=j; }
+    u8 eid = buff[0];
+    u8 len = buff[1];
+    if (WLAN_EID_SUPP_RATES!=eid) return 0;
     for(i=0; i<len; i++) {
-        if (j<255) {
-            rates[j++] = pos[i];
+        if (j<max) {
+            u8 rate =  buff[i+2];
+            if (rate & 0x80) {
+                rates[j].isBasic = 1;
+                rate &= 0x7F;
+            }
+            rates[j].value = rate * 5;
+            j++;
         }
     }
-    
-    *buff = pos;
-    *out_sz=j;
-    return (int*)rates;
-
-    for (j = 0; j<nbBascis; j++) p->d[i++] = BASIC_RATE(BASIC_RATES[j]);
-    for (j = 0; j<nbSuppor; j++) p->d[i++] = SUPPORTED_RATE(SUPPORTED_RATES[j]);
-    //fhexdump(stderr, "nl80211: Beacon rates", p->d, p->len);
-    return p->len;
+    return j;
 }
+
+static int hostapd_eid_ext_rates(u8* buff, rates_t* rates, int max) {
+      int i,j=0;
+    u8 eid = buff[0];
+    u8 len = buff[1];
+    if (WLAN_EID_EXT_SUPP_RATES!=eid) return 0;
+    for(i=0; i<len; i++) {
+        if (j<max) {
+            u8 rate =  buff[i+2];
+            if (rate & 0x80) {
+                rates[j].isBasic = 1;
+                rate &= 0x7F;
+            }
+            rates[j].value = rate * 5;
+            j++;
+        }
+    }
+    return j;
+}
+
 
 
 void mngt_rx_handle(struct nl80211_data* ctx, u8 *buf, size_t len, int datarate, int ssi_signal)
@@ -130,6 +145,7 @@ void mngt_rx_handle(struct nl80211_data* ctx, u8 *buf, size_t len, int datarate,
         case WLAN_FC_STYPE_ASSOC_REQ:
             fprintf(stderr, "ASSOC_REQ from ");
             fprintf(stderr, "%02x:%02x:%02x:%02x:%02x:%02x\n", mgmt->sa[0], mgmt->sa[1], mgmt->sa[2], mgmt->sa[3], mgmt->sa[4], mgmt->sa[5]);
+            fprintf(stderr, "%d %d\n", IEEE80211_HDRLEN, sizeof(mgmt->u.assoc_req));
             if (len<IEEE80211_HDRLEN + sizeof(mgmt->u.assoc_req)) {
                 fprintf(stderr,"malformed packet\n");
                 return;
@@ -137,15 +153,32 @@ void mngt_rx_handle(struct nl80211_data* ctx, u8 *buf, size_t len, int datarate,
                 u16 capainfo = le_to_host16(mgmt->u.assoc_req.capab_info);
                 u16 listen_interval = le_to_host16(mgmt->u.assoc_req.listen_interval);
                 u8* sta_varia = mgmt->u.assoc_req.variable;
-                char* ssid = hostapd_eid_ssid(&sta_varia);
-                int*  rates = hostapd_eid_ssid(&sta_varia);
-static int BASIC_RATES[4] = { 10, 20, 55, 110 };
-//array of suppported rates in 100 kbps (6MB, 9MB, 12MB, 18MB)
-static int SUPPORTED_RATES[4] = { 60, 90, 120, 180 };
-//array of suppported rates in 100 kbps (24MB, 36MB, 48MB, 54MB)
-static int EXT_RATES[4] = { 240, 360, 480, 540};
-                fprintf(stderr, "capa:0x%04X listen_interval:%d ssid:'%s'\n", capainfo, listen_interval, ssid);
+                int nbrates = 0;
+                char ssid[255];
+                rates_t rates[255];
+                fprintf(stderr,"len = %d\n", len);
+                int remain = len - IEEE80211_HDRLEN + sizeof(mgmt->u.assoc_req) /* don't take variable in account */  ;
+                fprintf(stderr,"remain = %d\n", remain);
+                do {
+                   u8 eid              = sta_varia[0];
+                   u8 eid_payload_len  = sta_varia[1];
+                   u8 eidlen           = eid_payload_len+2;
 
+                   fprintf(stderr,"%02X (%d) (%d/%d)\n", eid, eid,eid_payload_len,remain);
+                   switch(eid) {
+                        case WLAN_EID_SSID:           hostapd_eid_ssid(sta_varia, ssid, 255); break;
+                        case WLAN_EID_SUPP_RATES:     nbrates = hostapd_eid_supp_rates(sta_varia, &rates[nbrates], 255); break;
+                        case WLAN_EID_EXT_SUPP_RATES: nbrates = hostapd_eid_ext_rates(sta_varia, &rates[nbrates], 255-nbrates); break;
+                   }
+
+                   remain -= eidlen;
+                   fprintf(stderr,"remain = %d\n", remain);
+                   sta_varia = &sta_varia[eidlen];
+                } while(remain>0);
+
+                
+                fprintf(stderr, "capa:0x%04X listen_interval:%d ssid:'%s' rates:%d\n", capainfo, listen_interval, ssid, nbrates);
+                
                 //send_asso_resp(ctx, hdr->addr2);
             }
 

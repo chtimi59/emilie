@@ -196,14 +196,14 @@ int nl80211_set_ap(struct nl80211_data *ctx)
     {
         u8 * pos = NULL;
         packet_element_t rates = { 0 };
-        packet_element_t emilie = { 0 };
+        //packet_element_t emilie = { 0 };
 
         tail_sz += hostapd_eid_ext_rates(&rates);
-        tail_sz += hostapd_eid_emilie(&emilie);
+        //tail_sz += hostapd_eid_emilie(&emilie);
 
         tail = (u8*)malloc(tail_sz); pos = tail;
         pos = packet_element_concatnfree(pos, rates);
-        pos = packet_element_concatnfree(pos, emilie);
+        //pos = packet_element_concatnfree(pos, emilie);
 
         fhexdump(stderr, "nl80211: Beacon tail", tail, tail_sz);
     }
